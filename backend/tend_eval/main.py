@@ -8,12 +8,13 @@ from typing import Any
 import uvicorn
 from fastapi import FastAPI, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 
 from . import __version__
 from .catalog import build_catalog
 from .config import Settings, get_settings
-from .contracts import RunCreate, RunView, WorkItemView, WorkStatus
+from .contracts import EvaluationView, RunCreate, RunView, WorkItemView, WorkStatus
+from .evaluation import load_result_records, load_results, resolve_export
 from .executor import TendMethodExecutor
 from .health import collect_health
 from .orchestrator import RunOrchestrator, WorkExecutor
@@ -145,6 +146,60 @@ def create_app(
         if run is None:
             raise HTTPException(status_code=404, detail="run not found")
         return run
+
+    @app.get("/api/runs/{run_id}/results")
+    def run_results(run_id: str, request: Request) -> dict[str, Any]:
+        if request.app.state.store.get_run(run_id) is None:
+            raise HTTPException(status_code=404, detail="run not found")
+        result = load_results(request.app.state.settings, request.app.state.store, run_id)
+        if result is None:
+            raise HTTPException(status_code=409, detail="custom-query runs do not have benchmark metrics")
+        return result
+
+    @app.get("/api/runs/{run_id}/results/records")
+    def result_records(
+        run_id: str,
+        request: Request,
+        track: str = Query(default="canonical"),
+        system_id: str | None = Query(default=None),
+        db_id: str | None = Query(default=None),
+        outcome: str | None = Query(default=None),
+        offset: int = Query(default=0, ge=0),
+        limit: int = Query(default=100, ge=1, le=1_000),
+    ) -> dict[str, Any]:
+        result = load_result_records(
+            request.app.state.settings,
+            request.app.state.store,
+            run_id,
+            track=track,
+            system_id=system_id,
+            db_id=db_id,
+            outcome=outcome,
+            offset=offset,
+            limit=limit,
+        )
+        if result is None:
+            raise HTTPException(status_code=404, detail="evaluation not found")
+        return result
+
+    @app.get("/api/runs/{run_id}/results/export/{track}/{kind}")
+    def export_results(run_id: str, track: str, kind: str, request: Request) -> FileResponse:
+        path = resolve_export(
+            request.app.state.settings, request.app.state.store, run_id, track, kind
+        )
+        if path is None or not path.is_file():
+            raise HTTPException(status_code=404, detail="result artifact not found")
+        return FileResponse(path, filename=f"{run_id}-{track}-{path.name}")
+
+    @app.post("/api/runs/{run_id}/evaluate", response_model=EvaluationView)
+    def rerun_evaluation(run_id: str, request: Request) -> EvaluationView:
+        evaluation = request.app.state.store.request_evaluation(run_id)
+        if evaluation is None:
+            raise HTTPException(
+                status_code=409,
+                detail="only terminal benchmark runs can be evaluated",
+            )
+        return evaluation
 
     @app.get("/api/runs/{run_id}/events")
     async def run_events(

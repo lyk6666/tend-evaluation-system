@@ -8,7 +8,17 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from .contracts import EventView, RunCreate, RunMode, RunStatus, RunView, WorkItemView, WorkStatus
+from .contracts import (
+    EvaluationStatus,
+    EvaluationView,
+    EventView,
+    RunCreate,
+    RunMode,
+    RunStatus,
+    RunView,
+    WorkItemView,
+    WorkStatus,
+)
 
 
 def utc_now() -> str:
@@ -87,6 +97,15 @@ class RunStore:
                     created_at TEXT NOT NULL
                 );
                 CREATE INDEX IF NOT EXISTS idx_events_run_id ON events(run_id, id);
+                CREATE TABLE IF NOT EXISTS evaluations (
+                    run_id TEXT PRIMARY KEY REFERENCES runs(id) ON DELETE CASCADE,
+                    status TEXT NOT NULL,
+                    tracks_json TEXT NOT NULL,
+                    artifacts_json TEXT NOT NULL DEFAULT '{}',
+                    started_at TEXT,
+                    finished_at TEXT,
+                    error TEXT
+                );
                 """
             )
 
@@ -107,6 +126,11 @@ class RunStore:
             connection.execute(
                 "UPDATE runs SET status = ?, updated_at = ? WHERE status = ?",
                 (RunStatus.PAUSED, now, RunStatus.PAUSING),
+            )
+            connection.execute(
+                "UPDATE evaluations SET status = ?, started_at = NULL, finished_at = NULL "
+                "WHERE status = ?",
+                (EvaluationStatus.PENDING, EvaluationStatus.RUNNING),
             )
             cancelling = connection.execute(
                 "SELECT id FROM runs WHERE status = ?", (RunStatus.CANCELLING,)
@@ -183,6 +207,11 @@ class RunStore:
                 ],
             )
             self._add_event(connection, run_id, "run_created", {"total_items": len(work_items)}, now)
+            if request.mode == RunMode.BENCHMARK:
+                connection.execute(
+                    "INSERT INTO evaluations (run_id, status, tracks_json) VALUES (?, ?, ?)",
+                    (run_id, EvaluationStatus.PENDING, json.dumps(request.tracks)),
+                )
             connection.commit()
         run = self.get_run(run_id)
         if run is None:
@@ -204,10 +233,95 @@ class RunStore:
     def actionable_run_ids(self) -> list[str]:
         with self.connect() as connection:
             rows = connection.execute(
-                "SELECT id FROM runs WHERE status IN (?, ?, ?) ORDER BY created_at",
-                (RunStatus.QUEUED, RunStatus.RUNNING, RunStatus.CANCELLING),
+                "SELECT id FROM runs WHERE status IN (?, ?, ?) "
+                "OR (status IN (?, ?, ?) AND id IN "
+                "(SELECT run_id FROM evaluations WHERE status = ?)) ORDER BY created_at",
+                (
+                    RunStatus.QUEUED,
+                    RunStatus.RUNNING,
+                    RunStatus.CANCELLING,
+                    RunStatus.COMPLETED,
+                    RunStatus.FAILED,
+                    RunStatus.CANCELLED,
+                    EvaluationStatus.PENDING,
+                ),
             ).fetchall()
             return [str(row["id"]) for row in rows]
+
+    def get_evaluation(self, run_id: str) -> EvaluationView | None:
+        with self.connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM evaluations WHERE run_id = ?", (run_id,)
+            ).fetchone()
+            return self._evaluation_view(row) if row else None
+
+    def mark_evaluation_running(self, run_id: str) -> EvaluationView | None:
+        now = utc_now()
+        with self.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            changed = connection.execute(
+                "UPDATE evaluations SET status = ?, started_at = ?, finished_at = NULL, "
+                "error = NULL, artifacts_json = '{}' WHERE run_id = ? AND status = ?",
+                (EvaluationStatus.RUNNING, now, run_id, EvaluationStatus.PENDING),
+            ).rowcount
+            if changed:
+                self._add_event(connection, run_id, "evaluation_started", {}, now)
+            connection.commit()
+        return self.get_evaluation(run_id)
+
+    def finish_evaluation(
+        self, run_id: str, artifacts: dict[str, dict[str, str]]
+    ) -> EvaluationView | None:
+        now = utc_now()
+        with self.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            connection.execute(
+                "UPDATE evaluations SET status = ?, artifacts_json = ?, finished_at = ?, "
+                "error = NULL WHERE run_id = ?",
+                (EvaluationStatus.COMPLETED, json.dumps(artifacts), now, run_id),
+            )
+            self._add_event(
+                connection,
+                run_id,
+                "evaluation_finished",
+                {"tracks": sorted(artifacts)},
+                now,
+            )
+            connection.commit()
+        return self.get_evaluation(run_id)
+
+    def fail_evaluation(self, run_id: str, error: str) -> EvaluationView | None:
+        now = utc_now()
+        with self.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            connection.execute(
+                "UPDATE evaluations SET status = ?, error = ?, finished_at = ? WHERE run_id = ?",
+                (EvaluationStatus.FAILED, error, now, run_id),
+            )
+            self._add_event(connection, run_id, "evaluation_failed", {"error": error}, now)
+            connection.commit()
+        return self.get_evaluation(run_id)
+
+    def request_evaluation(self, run_id: str) -> EvaluationView | None:
+        now = utc_now()
+        with self.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute(
+                "SELECT status FROM runs WHERE id = ?", (run_id,)
+            ).fetchone()
+            if row and row["status"] in {
+                RunStatus.COMPLETED,
+                RunStatus.FAILED,
+                RunStatus.CANCELLED,
+            }:
+                connection.execute(
+                    "UPDATE evaluations SET status = ?, artifacts_json = '{}', started_at = NULL, "
+                    "finished_at = NULL, error = NULL WHERE run_id = ?",
+                    (EvaluationStatus.PENDING, run_id),
+                )
+                self._add_event(connection, run_id, "evaluation_requested", {}, now)
+            connection.commit()
+        return self.get_evaluation(run_id)
 
     def mark_running(self, run_id: str) -> None:
         now = utc_now()
@@ -544,4 +658,16 @@ class RunStore:
             finished_at=row["finished_at"],
             error=row["error"],
             result=json.loads(row["result_json"]) if row["result_json"] else None,
+        )
+
+    @staticmethod
+    def _evaluation_view(row: sqlite3.Row) -> EvaluationView:
+        return EvaluationView(
+            run_id=row["run_id"],
+            status=row["status"],
+            tracks=json.loads(row["tracks_json"]),
+            artifacts=json.loads(row["artifacts_json"]),
+            started_at=row["started_at"],
+            finished_at=row["finished_at"],
+            error=row["error"],
         )

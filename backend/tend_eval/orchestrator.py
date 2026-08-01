@@ -136,6 +136,9 @@ class RunOrchestrator:
                 RunStatus.FAILED,
                 RunStatus.CANCELLED,
             }:
+                finalize_run = getattr(self.executor, "finalize_run", None)
+                if callable(finalize_run):
+                    await finalize_run(run_id)
                 close_run = getattr(self.executor, "close_run", None)
                 if callable(close_run):
                     await close_run(run_id)

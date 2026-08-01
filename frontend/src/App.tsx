@@ -7,6 +7,8 @@ import {
   ChevronRight,
   CircleDot,
   Database,
+  Download,
+  FileSearch,
   FlaskConical,
   Pause,
   Play,
@@ -21,7 +23,14 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "./api";
-import type { Catalog, Health, RunView, WorkItem } from "./types";
+import type {
+  Catalog,
+  EvaluationResults,
+  Health,
+  ResultRecordPage,
+  RunView,
+  WorkItem
+} from "./types";
 
 type Mode = "benchmark" | "query";
 const terminalStatuses = new Set(["completed", "failed", "cancelled"]);
@@ -56,6 +65,7 @@ export default function App() {
   const [runs, setRuns] = useState<RunView[]>([]);
   const [activeRun, setActiveRun] = useState<RunView | null>(null);
   const [items, setItems] = useState<WorkItem[]>([]);
+  const [results, setResults] = useState<EvaluationResults | null>(null);
   const [selectedMethods, setSelectedMethods] = useState<string[]>(["direct", "sag_v3"]);
   const [selectedTracks, setSelectedTracks] = useState<string[]>(["canonical"]);
   const [concurrency, setConcurrency] = useState(4);
@@ -81,6 +91,12 @@ export default function App() {
     setActiveRun(run);
     setItems(workItems);
     setRuns((current) => [run, ...current.filter((item) => item.id !== run.id)]);
+    if (run.mode === "benchmark") {
+      const evaluation = await api.results(runId);
+      setResults(evaluation);
+    } else {
+      setResults(null);
+    }
     return run;
   }, []);
 
@@ -89,12 +105,15 @@ export default function App() {
   }, [refreshSystem]);
 
   useEffect(() => {
-    if (!activeRun || terminalStatuses.has(activeRun.status)) return;
+    if (!activeRun) return;
+    const evaluationDone = activeRun.mode === "custom_query"
+      || (results?.run_id === activeRun.id && ["completed", "failed"].includes(results.status));
+    if (terminalStatuses.has(activeRun.status) && evaluationDone) return;
     const interval = window.setInterval(() => {
       refreshRun(activeRun.id).catch((value) => setError(String(value)));
     }, 900);
     return () => window.clearInterval(interval);
-  }, [activeRun?.id, activeRun?.status, refreshRun]);
+  }, [activeRun?.id, activeRun?.status, results?.run_id, results?.status, refreshRun]);
 
   const plannedTasks = useMemo(() => {
     const perTrack = catalog?.dataset.task_count ?? 1210;
@@ -138,6 +157,7 @@ export default function App() {
           });
       setActiveRun(run);
       setItems([]);
+      setResults(null);
       setRuns((current) => [run, ...current]);
     } catch (value) {
       setError(value instanceof Error ? value.message : String(value));
@@ -168,9 +188,9 @@ export default function App() {
           <div><strong>TEND Lab</strong><span>Evaluation control plane</span></div>
         </div>
         <nav aria-label="Primary navigation">
-          <button className="active"><Activity size={16} /> Runs</button>
-          <button><BarChart3 size={16} /> Results</button>
-          <button><Settings2 size={16} /> Settings</button>
+          <button className="active" onClick={() => document.getElementById("runs")?.scrollIntoView({ behavior: "smooth" })}><Activity size={16} /> Runs</button>
+          <button onClick={() => document.getElementById("results")?.scrollIntoView({ behavior: "smooth" })}><BarChart3 size={16} /> Results</button>
+          <button onClick={() => document.getElementById("settings")?.scrollIntoView({ behavior: "smooth" })}><Settings2 size={16} /> Settings</button>
         </nav>
         <button className="refresh-button" onClick={() => refreshSystem()} title="Refresh system">
           <RotateCw size={15} />
@@ -200,7 +220,7 @@ export default function App() {
 
         <section className="status-grid" aria-label="System status">
           <StatusCard icon={<Database size={18} />} label="MongoDB" value={health?.mongodb.available ? `${health.mongodb.database_count} databases` : "Unavailable"} ok={health?.mongodb.available ?? false} />
-          <StatusCard icon={<TerminalSquare size={18} />} label="Official TEND" value={health?.upstream.commit?.slice(0, 8) ?? "Not connected"} ok={health?.upstream.available ?? false} />
+          <StatusCard icon={<TerminalSquare size={18} />} label="Official TEND" value={health?.upstream.available ? (health.upstream.commit?.slice(0, 8) ?? "Connected") : "Not connected"} ok={health?.upstream.available ?? false} />
           <StatusCard icon={<Server size={18} />} label="Provider" value={health?.provider.model ?? "gpt-5.6-luna"} ok={health?.provider.ready ?? false} />
           <StatusCard icon={<CheckCircle2 size={18} />} label="Dataset" value={health?.dataset.available ? `${health.dataset.task_count.toLocaleString()} tasks` : "Not found"} ok={health?.dataset.available ?? false} />
         </section>
@@ -210,7 +230,7 @@ export default function App() {
           <button className={mode === "query" ? "active" : ""} onClick={() => setMode("query")}><Search size={17} /> User-specified query</button>
         </div>
 
-        <section className="workspace-grid">
+        <section className="workspace-grid" id="runs">
           <article className="panel configuration-panel">
             <div className="panel-head"><div><span className="step">01</span><h2>Select methods</h2></div><span>{selectedMethods.length} selected</span></div>
             <div className="method-list">
@@ -226,7 +246,7 @@ export default function App() {
           </article>
 
           <div className="right-stack">
-            <article className="panel run-panel">
+            <article className="panel run-panel" id="settings">
               <div className="panel-head"><div><span className="step">02</span><h2>{mode === "benchmark" ? "Configure benchmark" : "Configure query"}</h2></div></div>
               {mode === "benchmark" ? (
                 <div className="form-grid">
@@ -252,12 +272,139 @@ export default function App() {
           </div>
         </section>
 
+        <ResultsPanel
+          run={activeRun}
+          results={results}
+          onEvaluate={async () => {
+            if (!activeRun) return;
+            await api.evaluate(activeRun.id);
+            await refreshRun(activeRun.id);
+          }}
+        />
+
         <section className="panel history-panel">
           <div className="panel-head"><div><span className="step">04</span><h2>Recent runs</h2></div><span>{countLabel(runs.length, "run")}</span></div>
           {runs.length ? <div className="history-table">{runs.map((run) => <button key={run.id} className={activeRun?.id === run.id ? "active" : ""} onClick={() => refreshRun(run.id)}><span><strong>{run.name}</strong><small>{new Date(run.created_at).toLocaleString()} · {run.method_ids.length} methods · {run.total_items.toLocaleString()} tasks</small></span><RunStatusPill status={run.status} /><span className="history-progress">{Math.round(run.progress * 100)}%</span><ChevronRight size={16} /></button>)}</div> : <div className="empty-history">No runs yet. Configure the first benchmark above.</div>}
         </section>
       </main>
     </div>
+  );
+}
+
+function formatPercent(value: number | undefined) {
+  return `${((value ?? 0) * 100).toFixed(1)}%`;
+}
+
+function ResultsPanel({ run, results, onEvaluate }: {
+  run: RunView | null;
+  results: EvaluationResults | null;
+  onEvaluate: () => Promise<void>;
+}) {
+  const [track, setTrack] = useState("canonical");
+  const [systemId, setSystemId] = useState("");
+  const [axis, setAxis] = useState("domain");
+  const [outcome, setOutcome] = useState("");
+  const [records, setRecords] = useState<ResultRecordPage | null>(null);
+  const [loadingRecords, setLoadingRecords] = useState(false);
+
+  const availableTracks = results?.tracks ?? [];
+  const report = results?.reports[track];
+  const systems = Object.keys(report?.systems ?? {});
+  const axes = Object.keys(report?.system_slice_aggregates?.[systemId] ?? {});
+  const sliceBuckets = report?.system_slice_aggregates?.[systemId]?.[axis] ?? {};
+
+  useEffect(() => {
+    if (availableTracks.length && !availableTracks.includes(track)) setTrack(availableTracks[0]);
+  }, [availableTracks.join("|"), track]);
+
+  useEffect(() => {
+    if (systems.length && !systems.includes(systemId)) setSystemId(systems[0]);
+  }, [systems.join("|"), systemId]);
+
+  useEffect(() => {
+    if (axes.length && !axes.includes(axis)) setAxis(axes[0]);
+  }, [axes.join("|"), axis]);
+
+  useEffect(() => {
+    if (!run || !report || !systemId) {
+      setRecords(null);
+      return;
+    }
+    setLoadingRecords(true);
+    api.resultRecords(run.id, {
+      track,
+      system_id: systemId,
+      outcome: outcome || undefined,
+      limit: 50
+    }).then(setRecords).catch(() => setRecords(null)).finally(() => setLoadingRecords(false));
+  }, [run?.id, track, systemId, outcome, report]);
+
+  if (!run || run.mode !== "benchmark") {
+    return (
+      <section className="panel results-panel" id="results">
+        <div className="panel-head"><div><span className="step">05</span><h2>Benchmark results</h2></div><span>No benchmark selected</span></div>
+        <div className="empty-monitor"><BarChart3 size={26} /><strong>Metrics appear automatically</strong><p>Select or start a benchmark run to inspect EXC, EXF1, claim-axis slices, outcomes, and record-level diagnostics.</p></div>
+      </section>
+    );
+  }
+
+  if (!results || results.status !== "completed" || !report) {
+    return (
+      <section className="panel results-panel" id="results">
+        <div className="panel-head"><div><span className="step">05</span><h2>Benchmark results</h2></div><RunStatusPill status={results?.status ?? "pending"} /></div>
+        <div className="evaluation-wait">
+          {results?.status === "failed" ? <AlertTriangle size={24} /> : <Activity size={24} />}
+          <div><strong>{results?.status === "failed" ? "Evaluation needs attention" : "Official TEND evaluation is queued"}</strong><p>{results?.error ?? "Scoring starts automatically when generation reaches a terminal state."}</p></div>
+          {results?.status === "failed" && <button onClick={() => void onEvaluate()}><RotateCw size={14} /> Retry evaluation</button>}
+        </div>
+      </section>
+    );
+  }
+
+  const selectedSystem = report.systems[systemId];
+  return (
+    <section className="panel results-panel" id="results">
+      <div className="panel-head results-head">
+        <div><span className="step">05</span><h2>Benchmark results</h2></div>
+        <div className="result-actions">
+          <RunStatusPill status={report.status} />
+          <button onClick={() => void onEvaluate()}><RotateCw size={13} /> Re-evaluate</button>
+        </div>
+      </div>
+      <div className="result-trackbar">
+        <div>{availableTracks.map((value) => <button key={value} className={track === value ? "active" : ""} onClick={() => setTrack(value)}>{value}</button>)}</div>
+        <span>{report.release_record_count.toLocaleString()} release records / method</span>
+      </div>
+
+      <div className="result-section">
+        <div className="result-title"><div><BarChart3 size={16} /><strong>Method leaderboard</strong></div><span>Official TEND scores</span></div>
+        <div className="metric-table-wrap"><table className="metric-table"><thead><tr><th>Method</th><th>Records</th><th>EXC</th><th>EXF1</th><th>Correct</th><th>No submission</th><th>Invalid</th><th>Exec error</th></tr></thead><tbody>
+          {Object.entries(report.systems).map(([id, value]) => <tr key={id} className={id === systemId ? "selected" : ""} onClick={() => setSystemId(id)}><td><strong>{id}</strong></td><td>{value.record_count.toLocaleString()}</td><td className="metric-primary">{formatPercent(value.scores.EXC)}</td><td>{formatPercent(value.scores.EXF1)}</td><td>{value.outcome_distribution.counts.correct ?? 0}</td><td>{value.outcome_distribution.counts.no_submission ?? 0}</td><td>{value.outcome_distribution.counts.invalid ?? 0}</td><td>{value.outcome_distribution.counts.exec_error ?? 0}</td></tr>)}
+        </tbody></table></div>
+      </div>
+
+      <div className="result-two-column">
+        <div className="result-section">
+          <div className="result-title"><div><FlaskConical size={16} /><strong>Claim-axis slices</strong></div><select value={axis} onChange={(event) => setAxis(event.target.value)}>{axes.map((value) => <option key={value}>{value}</option>)}</select></div>
+          <div className="metric-table-wrap compact-table"><table className="metric-table"><thead><tr><th>{axis.replaceAll("_", " ")}</th><th>N</th><th>EXC</th><th>EXF1</th></tr></thead><tbody>{Object.entries(sliceBuckets).map(([value, bucket]) => <tr key={value}><td><strong>{value}</strong></td><td>{bucket.record_count}</td><td className="metric-primary">{formatPercent(bucket.scores.EXC)}</td><td>{formatPercent(bucket.scores.EXF1)}</td></tr>)}</tbody></table></div>
+        </div>
+        <div className="result-section">
+          <div className="result-title"><div><CircleDot size={16} /><strong>Outcome decomposition</strong></div><span>{systemId}</span></div>
+          <div className="outcome-grid">{report.outcome_buckets_order.map((bucket) => <button key={bucket} className={outcome === bucket ? "active" : ""} onClick={() => setOutcome(outcome === bucket ? "" : bucket)}><span>{bucket.replaceAll("_", " ")}</span><strong>{selectedSystem?.outcome_distribution.counts[bucket] ?? 0}</strong><small>{formatPercent(selectedSystem?.outcome_distribution.fractions[bucket])}</small></button>)}</div>
+        </div>
+      </div>
+
+      <div className="result-section">
+        <div className="result-title"><div><FileSearch size={16} /><strong>Record drill-down</strong></div><span>{loadingRecords ? "Loading..." : `${records?.total ?? 0} matching records`}</span></div>
+        <div className="record-list">{records?.items.map((row) => {
+          const diagnostics = row.diagnostics ?? {};
+          const errorCode = typeof diagnostics.error_code === "string" ? diagnostics.error_code : "";
+          return <div className="record-row" key={`${row.system_id}-${row.db_id}-${row.record_id}`}><span><strong>{row.db_id} / {row.record_id}</strong><small>{errorCode || row.status}</small></span><RunStatusPill status={row.outcome} /><b>EXC {formatPercent(row.metrics.EXC)}</b><b>EXF1 {formatPercent(row.metrics.EXF1)}</b></div>;
+        }) ?? null}</div>
+      </div>
+
+      <div className="export-bar"><span><Download size={15} /> Export {track}</span>{(["report_json", "report_md", "per_record_csv", "per_record_jsonl"] as const).map((kind) => <a key={kind} href={`/api/runs/${run.id}/results/export/${track}/${kind}`}>{kind.replaceAll("_", " ")}</a>)}</div>
+    </section>
   );
 }
 

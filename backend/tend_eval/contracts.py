@@ -30,6 +30,13 @@ class WorkStatus(StrEnum):
     CANCELLED = "cancelled"
 
 
+class EvaluationStatus(StrEnum):
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
 class RunCreate(BaseModel):
     mode: RunMode = RunMode.BENCHMARK
     name: str | None = Field(default=None, max_length=120)
@@ -109,3 +116,13 @@ class EventView(BaseModel):
     type: str
     payload: dict[str, Any]
     created_at: str
+
+
+class EvaluationView(BaseModel):
+    run_id: str
+    status: EvaluationStatus
+    tracks: list[str]
+    artifacts: dict[str, dict[str, str]] = Field(default_factory=dict)
+    started_at: str | None = None
+    finished_at: str | None = None
+    error: str | None = None

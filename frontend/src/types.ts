@@ -118,3 +118,55 @@ export type RunCreate = {
   execute_custom_query?: boolean;
   concurrency: number;
 };
+
+export type Scores = Record<string, number>;
+
+export type OutcomeDistribution = {
+  total: number;
+  counts: Record<string, number>;
+  fractions: Record<string, number>;
+};
+
+export type SliceBucket = { record_count: number; scores: Scores };
+
+export type EvaluationReport = {
+  status: "ok" | "partial" | "failed";
+  record_count: number;
+  release_record_count: number;
+  outcome_buckets_order: string[];
+  systems: Record<string, {
+    record_count: number;
+    scores: Scores;
+    outcome_distribution: OutcomeDistribution;
+  }>;
+  slice_aggregates: Record<string, Record<string, SliceBucket>>;
+  system_slice_aggregates: Record<string, Record<string, Record<string, SliceBucket>>>;
+};
+
+export type EvaluationResults = {
+  run_id: string;
+  status: "pending" | "running" | "completed" | "failed";
+  tracks: string[];
+  artifacts: Record<string, Record<string, string>>;
+  reports: Record<string, EvaluationReport>;
+  started_at: string | null;
+  finished_at: string | null;
+  error: string | null;
+};
+
+export type ResultRecord = {
+  system_id: string;
+  db_id: string;
+  record_id: string | number;
+  outcome: string;
+  status: string;
+  metrics: Scores;
+  diagnostics?: Record<string, unknown>;
+};
+
+export type ResultRecordPage = {
+  total: number;
+  offset: number;
+  limit: number;
+  items: ResultRecord[];
+};

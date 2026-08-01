@@ -72,3 +72,34 @@ def test_pause_resume_cancel_and_recovery(tmp_path: Path) -> None:
     assert final and final.status == RunStatus.CANCELLED
     assert final.cancelled_items == 3
 
+
+def test_benchmark_evaluation_lifecycle(tmp_path: Path) -> None:
+    store = RunStore(tmp_path / "runs.sqlite3")
+    store.initialize()
+    request = RunCreate(
+        mode=RunMode.BENCHMARK,
+        method_ids=["direct"],
+        tracks=["canonical", "robustness"],
+        database_ids=["financial"],
+    )
+    items = [
+        {
+            "ordinal": 0,
+            "method_id": "direct",
+            "track": "canonical",
+            "db_id": "financial",
+            "record_id": 1,
+            "question": "question",
+            "payload": {},
+        }
+    ]
+    run = store.create_run(
+        request, items, model="gpt-5.6-luna", reasoning_effort="medium", concurrency=1
+    )
+    evaluation = store.get_evaluation(run.id)
+    assert evaluation and evaluation.status == "pending"
+    assert evaluation.tracks == ["canonical", "robustness"]
+    assert store.mark_evaluation_running(run.id).status == "running"
+    finished = store.finish_evaluation(run.id, {"canonical": {"report_json": "report.json"}})
+    assert finished and finished.status == "completed"
+    assert finished.artifacts["canonical"]["report_json"] == "report.json"

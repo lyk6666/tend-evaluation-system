@@ -11,6 +11,7 @@ from bson import json_util
 
 from .config import Settings
 from .contracts import WorkItemView
+from .evaluation import OfficialEvaluationService
 from .store import RunStore, utc_now
 
 
@@ -27,6 +28,7 @@ class TendMethodExecutor:
         self._compat_manifest_runs: set[str] = set()
         self._sample_cache: dict[tuple[str, str], dict[str, list[dict[str, Any]]]] = {}
         self._sample_locks: dict[tuple[str, str], asyncio.Lock] = {}
+        self._evaluation = OfficialEvaluationService(settings, store)
 
     async def __call__(self, item: WorkItemView) -> dict[str, Any]:
         run = self.store.get_run(item.run_id)
@@ -281,6 +283,13 @@ class TendMethodExecutor:
         runtime.mongo.close()
         await runtime.ctx.llm.aclose()
         runtime.log.close()
+
+    async def finalize_run(self, run_id: str) -> None:
+        state = self.store.get_evaluation(run_id)
+        if state is None or state.status != "pending":
+            return
+        runtime = await self._runtime_for(run_id)
+        await self._evaluation.finalize_run(run_id, runtime)
 
     async def aclose(self) -> None:
         for run_id in list(self._runtimes):

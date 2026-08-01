@@ -38,6 +38,19 @@ Start the API and UI in separate terminals:
 The API is served at `http://127.0.0.1:8000`; the dashboard is served at
 `http://127.0.0.1:5173`.
 
+When a benchmark run finishes (including an intentionally cancelled or partially failed
+run), the service automatically invokes the official TEND evaluator once per selected
+track. The Results workspace displays per-method EXC and EXF1, claim-axis slices, the
+mutually exclusive outcome decomposition, and record-level diagnostics. Official report
+JSON/Markdown and per-record CSV/JSONL are downloadable from the same workspace.
+
+To verify the evaluator against the existing MongoDB databases without making a provider
+request, run the one-record gold-query smoke test:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\smoke_evaluation.py
+```
+
 Never commit `.env`, API keys, MongoDB data, generated predictions, or run artifacts.
 
 ## Provider configuration
@@ -63,6 +76,12 @@ from `none` through `max`. See the [official model page](https://developers.open
 Every run writes a secret-free manifest and append-only prediction JSONL under
 `data/runtime/runs/<run-id>/`. The official TEND transcript tree is kept separately under
 `data/runtime/official-tend-runs/<run-id>/`.
+
+Evaluation artifacts are stored by track under
+`data/runtime/runs/<run-id>/evaluation/<track>/report/`. A run-scoped release subset fixes
+the denominator to the selected databases. Because the evaluator is configured to reuse
+the existing MongoDB databases, its staging release uses empty witness mappings and does
+not parse the 5.3 GB raw export a second time.
 
 The public upstream checkout currently omits its referenced
 `proposals/schemas/solver_allow_list.json`. The compatibility boundary allows the public
