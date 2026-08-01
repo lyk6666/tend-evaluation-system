@@ -26,7 +26,7 @@ export const api = {
   runs: () => request<RunView[]>("/api/runs"),
   run: (runId: string) => request<RunView>(`/api/runs/${runId}`),
   items: (runId: string, limit = 100) =>
-    request<WorkItem[]>(`/api/runs/${runId}/items?limit=${limit}`),
+    request<WorkItem[]>(`/api/runs/${runId}/items?limit=${limit}&recent=true`),
   createRun: (payload: RunCreate) =>
     request<RunView>("/api/runs", { method: "POST", body: JSON.stringify(payload) }),
   pause: (runId: string) =>

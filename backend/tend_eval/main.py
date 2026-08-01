@@ -119,11 +119,12 @@ def create_app(
         limit: int = Query(default=100, ge=1, le=1_000),
         offset: int = Query(default=0, ge=0),
         item_status: WorkStatus | None = Query(default=None, alias="status"),
+        recent: bool = Query(default=False),
     ):
         if request.app.state.store.get_run(run_id) is None:
             raise HTTPException(status_code=404, detail="run not found")
         return request.app.state.store.list_work_items(
-            run_id, limit=limit, offset=offset, status=item_status
+            run_id, limit=limit, offset=offset, status=item_status, recent=recent
         )
 
     @app.post("/api/runs/{run_id}/pause", response_model=RunView)

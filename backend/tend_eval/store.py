@@ -307,13 +307,18 @@ class RunStore:
         with self.connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
             row = connection.execute(
-                "SELECT status FROM runs WHERE id = ?", (run_id,)
+                "SELECT runs.status AS run_status, evaluations.status AS evaluation_status "
+                "FROM runs LEFT JOIN evaluations ON evaluations.run_id = runs.id "
+                "WHERE runs.id = ?",
+                (run_id,),
             ).fetchone()
-            if row and row["status"] in {
-                RunStatus.COMPLETED,
-                RunStatus.FAILED,
-                RunStatus.CANCELLED,
-            }:
+            if (
+                row
+                and row["run_status"]
+                in {RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED}
+                and row["evaluation_status"] is not None
+                and row["evaluation_status"] != EvaluationStatus.RUNNING
+            ):
                 connection.execute(
                     "UPDATE evaluations SET status = ?, artifacts_json = '{}', started_at = NULL, "
                     "finished_at = NULL, error = NULL WHERE run_id = ?",
@@ -321,6 +326,12 @@ class RunStore:
                 )
                 self._add_event(connection, run_id, "evaluation_requested", {}, now)
             connection.commit()
+        if not row or row["run_status"] not in {
+            RunStatus.COMPLETED,
+            RunStatus.FAILED,
+            RunStatus.CANCELLED,
+        }:
+            return None
         return self.get_evaluation(run_id)
 
     def mark_running(self, run_id: str) -> None:
@@ -550,17 +561,24 @@ class RunStore:
         limit: int = 100,
         offset: int = 0,
         status: WorkStatus | None = None,
+        recent: bool = False,
     ) -> list[WorkItemView]:
+        order = (
+            "CASE WHEN status = 'pending' THEN 1 ELSE 0 END, "
+            "COALESCE(finished_at, started_at, created_at) DESC, ordinal DESC"
+            if recent
+            else "ordinal"
+        )
         with self.connect() as connection:
             if status is None:
                 rows = connection.execute(
-                    "SELECT * FROM work_items WHERE run_id = ? ORDER BY ordinal LIMIT ? OFFSET ?",
+                    f"SELECT * FROM work_items WHERE run_id = ? ORDER BY {order} LIMIT ? OFFSET ?",
                     (run_id, limit, offset),
                 ).fetchall()
             else:
                 rows = connection.execute(
                     "SELECT * FROM work_items WHERE run_id = ? AND status = ? "
-                    "ORDER BY ordinal LIMIT ? OFFSET ?",
+                    f"ORDER BY {order} LIMIT ? OFFSET ?",
                     (run_id, status, limit, offset),
                 ).fetchall()
             return [self._work_view(row) for row in rows]

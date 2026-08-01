@@ -68,7 +68,9 @@ export default function App() {
   const [results, setResults] = useState<EvaluationResults | null>(null);
   const [selectedMethods, setSelectedMethods] = useState<string[]>(["direct", "sag_v3"]);
   const [selectedTracks, setSelectedTracks] = useState<string[]>(["canonical"]);
-  const [concurrency, setConcurrency] = useState(4);
+  const [concurrency, setConcurrency] = useState(0);
+  const [model, setModel] = useState("");
+  const [reasoningEffort, setReasoningEffort] = useState("medium");
   const [database, setDatabase] = useState("");
   const [question, setQuestion] = useState("");
   const [executeCustom, setExecuteCustom] = useState(true);
@@ -83,6 +85,8 @@ export default function App() {
     setCatalog(catalogValue);
     setRuns(runValues);
     setConcurrency((current) => current || healthValue.defaults.concurrency);
+    setModel((current) => current || healthValue.provider.model);
+    setReasoningEffort((current) => current || healthValue.provider.reasoning_effort);
     setDatabase((current) => current || catalogValue.dataset.databases?.[0] || "");
   }, []);
 
@@ -145,7 +149,9 @@ export default function App() {
             mode: "benchmark",
             method_ids: selectedMethods,
             tracks: selectedTracks,
-            concurrency
+            concurrency,
+            model,
+            reasoning_effort: reasoningEffort as "none" | "low" | "medium" | "high" | "xhigh" | "max"
           })
         : await api.createRun({
             mode: "custom_query",
@@ -153,7 +159,9 @@ export default function App() {
             database_id: database,
             question,
             execute_custom_query: executeCustom,
-            concurrency
+            concurrency,
+            model,
+            reasoning_effort: reasoningEffort as "none" | "low" | "medium" | "high" | "xhigh" | "max"
           });
       setActiveRun(run);
       setItems([]);
@@ -251,14 +259,14 @@ export default function App() {
               {mode === "benchmark" ? (
                 <div className="form-grid">
                   <fieldset><legend>Evaluation tracks</legend>{catalog?.tracks.map((track) => <label className="track-option" key={track.id}><input type="checkbox" checked={selectedTracks.includes(track.id)} onChange={() => toggle(track.id, selectedTracks, setSelectedTracks)} /><span><strong>{track.title}</strong><small>{track.description}</small></span></label>)}</fieldset>
-                  <RunSettings health={health} concurrency={concurrency} setConcurrency={setConcurrency} />
+                  <RunSettings health={health} concurrency={concurrency} setConcurrency={setConcurrency} model={model} setModel={setModel} reasoningEffort={reasoningEffort} setReasoningEffort={setReasoningEffort} />
                 </div>
               ) : (
                 <div className="custom-form">
                   <label className="field"><span>Database</span><select value={database} onChange={(event) => setDatabase(event.target.value)}>{catalog?.dataset.databases?.map((name) => <option key={name}>{name}</option>)}</select></label>
                   <label className="field"><span>Natural-language query</span><textarea rows={5} value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="Ask a question about the selected MongoDB database…" /></label>
                   <label className="execute-option"><input type="checkbox" checked={executeCustom} onChange={(event) => setExecuteCustom(event.target.checked)} /><span><strong>Execute generated MQL</strong><small>Return a bounded 100-row preview.</small></span></label>
-                  <RunSettings health={health} concurrency={concurrency} setConcurrency={setConcurrency} compact />
+                  <RunSettings health={health} concurrency={concurrency} setConcurrency={setConcurrency} model={model} setModel={setModel} reasoningEffort={reasoningEffort} setReasoningEffort={setReasoningEffort} compact />
                 </div>
               )}
             </article>
@@ -408,17 +416,30 @@ function ResultsPanel({ run, results, onEvaluate }: {
   );
 }
 
-function RunSettings({ health, concurrency, setConcurrency, compact = false }: {
+function RunSettings({
+  health,
+  concurrency,
+  setConcurrency,
+  model,
+  setModel,
+  reasoningEffort,
+  setReasoningEffort,
+  compact = false
+}: {
   health: Health | null;
   concurrency: number;
   setConcurrency: (value: number) => void;
+  model: string;
+  setModel: (value: string) => void;
+  reasoningEffort: string;
+  setReasoningEffort: (value: string) => void;
   compact?: boolean;
 }) {
   return (
     <div className={compact ? "compact-settings" : "settings-fields"}>
-      <label className="field"><span>Worker concurrency</span><input type="number" min="1" max="128" value={concurrency} onChange={(event) => setConcurrency(Number(event.target.value))} /><small>Default 4 · adjustable per run</small></label>
-      <label className="field"><span>Provider / model</span><input value={health?.provider.model ?? "gpt-5.6-luna"} readOnly /><small>Shared by all selected methods</small></label>
-      {!compact && <label className="field"><span>Reasoning effort</span><input value={health?.provider.reasoning_effort ?? "medium"} readOnly /><small>Configured at run level</small></label>}
+      <label className="field"><span>Worker concurrency</span><input type="number" min="1" max="128" value={concurrency || ""} onChange={(event) => setConcurrency(Number(event.target.value))} /><small>Server default {health?.defaults.concurrency ?? 4} · adjustable per run</small></label>
+      <label className="field"><span>Provider / model</span><input value={model} onChange={(event) => setModel(event.target.value)} /><small>One model shared by all selected methods</small></label>
+      {!compact && <label className="field"><span>Reasoning effort</span><select value={reasoningEffort} onChange={(event) => setReasoningEffort(event.target.value)}>{["none", "low", "medium", "high", "xhigh", "max"].map((value) => <option key={value}>{value}</option>)}</select><small>Configured once at run level</small></label>}
     </div>
   );
 }
@@ -440,8 +461,20 @@ function Monitor({ run, items, busy, onControl }: {
         <div className="progress-head"><div><strong>{Math.round(run.progress * 100)}%</strong><span>{finished.toLocaleString()} / {run.total_items.toLocaleString()} tasks</span></div><div className="run-actions">{run.status === "running" && <button disabled={busy} onClick={() => onControl("pause")}><Pause size={14} /> Pause</button>}{run.status === "paused" && <button disabled={busy} onClick={() => onControl("resume")}><Play size={14} /> Resume</button>}{!terminalStatuses.has(run.status) && <button className="danger" disabled={busy} onClick={() => onControl("cancel")}><Square size={13} /> Cancel</button>}</div></div>
         <div className="progress-track"><div style={{ width: `${run.progress * 100}%` }} /></div>
         <div className="counter-grid"><span><i className="dot running" />Running<strong>{run.running_items}</strong></span><span><i className="dot pending" />Pending<strong>{run.pending_items}</strong></span><span><i className="dot success" />Succeeded<strong>{run.succeeded_items}</strong></span><span><i className="dot failure" />Failed<strong>{run.failed_items}</strong></span></div>
-        <div className="work-feed"><div className="feed-head"><span>Recent work items</span><small>{run.model} · {run.reasoning_effort} · C{run.concurrency}</small></div>{items.slice(-6).reverse().map((item) => <div className="work-row" key={item.id}>{item.status === "succeeded" ? <CheckCircle2 size={14} /> : item.status === "failed" ? <XCircle size={14} /> : <Activity size={14} />}<span><strong>{item.method_id}</strong><small>{item.db_id} · {item.track} · {item.record_id ?? "custom"}</small></span><RunStatusPill status={item.status} /></div>)}</div>
+        <div className="work-feed"><div className="feed-head"><span>Recent work items</span><small>{run.model} · {run.reasoning_effort} · C{run.concurrency}</small></div>{items.slice(0, 6).map((item) => <div className="work-row" key={item.id}>{item.status === "succeeded" ? <CheckCircle2 size={14} /> : item.status === "failed" ? <XCircle size={14} /> : <Activity size={14} />}<span><strong>{item.method_id}</strong><small>{item.db_id} · {item.track} · {item.record_id ?? "custom"}</small></span><RunStatusPill status={item.status} /></div>)}</div>
+        {run.mode === "custom_query" && <CustomQueryOutputs items={items} />}
       </div>
     </article>
   );
+}
+
+function CustomQueryOutputs({ items }: { items: WorkItem[] }) {
+  const completed = items.filter((item) => item.result || item.error);
+  if (!completed.length) return null;
+  return <div className="custom-results"><div className="feed-head"><span>Generated query outputs</span><small>Execution previews are capped at 100 rows</small></div>{completed.map((item) => {
+    const result = item.result ?? {};
+    const mql = typeof result.MQL === "string" ? result.MQL : "No MQL was returned.";
+    const preview = result.execution_preview as { ok?: boolean; rows?: unknown[]; error?: string } | undefined;
+    return <details key={item.id} open={completed.length === 1}><summary><span><strong>{item.method_id}</strong><small>{preview?.ok ? `${preview.rows?.length ?? 0} preview rows` : item.error || preview?.error || item.status}</small></span><RunStatusPill status={item.status} /></summary><pre>{mql}</pre>{preview && <div className={`preview-box ${preview.ok ? "ok" : "failed"}`}><strong>{preview.ok ? "Execution preview" : "Execution error"}</strong><code>{preview.ok ? JSON.stringify((preview.rows ?? []).slice(0, 3), null, 2) : preview.error}</code></div>}</details>;
+  })}</div>;
 }

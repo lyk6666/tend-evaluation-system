@@ -117,6 +117,8 @@ export type RunCreate = {
   question?: string;
   execute_custom_query?: boolean;
   concurrency: number;
+  model?: string;
+  reasoning_effort?: "none" | "low" | "medium" | "high" | "xhigh" | "max";
 };
 
 export type Scores = Record<string, number>;

@@ -42,6 +42,8 @@ def test_store_claim_checkpoint_and_complete(tmp_path: Path) -> None:
     second = store.claim_next(run.id, "worker-test")
     assert second is not None
     store.finish_work(second.id, result={"ok": True})
+    recent = store.list_work_items(run.id, recent=True)
+    assert [value.id for value in recent] == [second.id, item.id]
     final = store.finalize_if_complete(run.id)
     assert final is not None
     assert final.status == RunStatus.COMPLETED
@@ -99,6 +101,7 @@ def test_benchmark_evaluation_lifecycle(tmp_path: Path) -> None:
     evaluation = store.get_evaluation(run.id)
     assert evaluation and evaluation.status == "pending"
     assert evaluation.tracks == ["canonical", "robustness"]
+    assert store.request_evaluation(run.id) is None
     assert store.mark_evaluation_running(run.id).status == "running"
     finished = store.finish_evaluation(run.id, {"canonical": {"report_json": "report.json"}})
     assert finished and finished.status == "completed"
