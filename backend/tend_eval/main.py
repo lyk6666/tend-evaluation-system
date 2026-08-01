@@ -14,8 +14,9 @@ from . import __version__
 from .catalog import build_catalog
 from .config import Settings, get_settings
 from .contracts import RunCreate, RunView, WorkItemView, WorkStatus
+from .executor import TendMethodExecutor
 from .health import collect_health
-from .orchestrator import RunOrchestrator, WorkExecutor, unavailable_executor
+from .orchestrator import RunOrchestrator, WorkExecutor
 from .store import RunStore
 from .workloads import build_work_items
 
@@ -23,11 +24,12 @@ from .workloads import build_work_items
 def create_app(
     settings: Settings | None = None,
     *,
-    executor: WorkExecutor = unavailable_executor,
+    executor: WorkExecutor | None = None,
 ) -> FastAPI:
     active_settings = settings or get_settings()
     store = RunStore(active_settings.sqlite_path)
-    orchestrator = RunOrchestrator(store, executor)
+    active_executor = executor or TendMethodExecutor(active_settings, store)
+    orchestrator = RunOrchestrator(store, active_executor)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -81,6 +83,11 @@ def create_app(
     @app.post("/api/runs", response_model=RunView, status_code=status.HTTP_202_ACCEPTED)
     def create_run(payload: RunCreate, request: Request) -> RunView:
         settings_value: Settings = request.app.state.settings
+        if not settings_value.provider_ready:
+            raise HTTPException(
+                status_code=409,
+                detail="Configure OPENAI_API_KEY or enable TEND_EVAL_LLM_STUB before starting a run",
+            )
         try:
             work_items = build_work_items(payload, settings_value)
         except (ValueError, FileNotFoundError) as error:

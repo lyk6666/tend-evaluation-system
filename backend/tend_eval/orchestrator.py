@@ -52,6 +52,9 @@ class RunOrchestrator:
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)
         self._run_tasks.clear()
+        close = getattr(self.executor, "aclose", None)
+        if callable(close):
+            await close()
 
     async def _manage(self) -> None:
         while not self._stopping:
@@ -126,6 +129,16 @@ class RunOrchestrator:
             if active:
                 await asyncio.gather(*active, return_exceptions=True)
             raise
+        finally:
+            run = self.store.get_run(run_id)
+            if run and run.status in {
+                RunStatus.COMPLETED,
+                RunStatus.FAILED,
+                RunStatus.CANCELLED,
+            }:
+                close_run = getattr(self.executor, "close_run", None)
+                if callable(close_run):
+                    await close_run(run_id)
 
     async def _execute(self, item: WorkItemView) -> None:
         try:

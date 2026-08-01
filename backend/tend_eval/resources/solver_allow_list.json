@@ -1,0 +1,13 @@
+{
+  "manifest_status": "unavailable_in_public_upstream_release",
+  "four_party_disjointness": {
+    "construction_model_ids": ["metadata-unavailable"]
+  },
+  "frozen_panels": {
+    "small": ["metadata-unavailable"],
+    "medium": ["metadata-unavailable"],
+    "large": ["metadata-unavailable"],
+    "frontier": ["metadata-unavailable"]
+  },
+  "tools": {}
+}

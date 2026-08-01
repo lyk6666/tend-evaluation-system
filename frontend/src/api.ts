@@ -1,15 +1,30 @@
-import type { Catalog, Health } from "./types";
+import type { Catalog, Health, RunCreate, RunView, WorkItem } from "./types";
 
-async function request<T>(path: string): Promise<T> {
-  const response = await fetch(path, { headers: { Accept: "application/json" } });
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(path, {
+    ...init,
+    headers: { Accept: "application/json", "Content-Type": "application/json", ...init?.headers }
+  });
   if (!response.ok) {
-    throw new Error(`Request failed (${response.status})`);
+    const payload = await response.json().catch(() => null) as { detail?: string } | null;
+    throw new Error(payload?.detail ?? `Request failed (${response.status})`);
   }
   return response.json() as Promise<T>;
 }
 
 export const api = {
   health: () => request<Health>("/api/health"),
-  catalog: () => request<Catalog>("/api/catalog")
+  catalog: () => request<Catalog>("/api/catalog"),
+  runs: () => request<RunView[]>("/api/runs"),
+  run: (runId: string) => request<RunView>(`/api/runs/${runId}`),
+  items: (runId: string, limit = 100) =>
+    request<WorkItem[]>(`/api/runs/${runId}/items?limit=${limit}`),
+  createRun: (payload: RunCreate) =>
+    request<RunView>("/api/runs", { method: "POST", body: JSON.stringify(payload) }),
+  pause: (runId: string) =>
+    request<RunView>(`/api/runs/${runId}/pause`, { method: "POST" }),
+  resume: (runId: string) =>
+    request<RunView>(`/api/runs/${runId}/resume`, { method: "POST" }),
+  cancel: (runId: string) =>
+    request<RunView>(`/api/runs/${runId}/cancel`, { method: "POST" })
 };
-

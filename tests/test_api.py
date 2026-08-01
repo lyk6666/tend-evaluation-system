@@ -38,4 +38,3 @@ def test_catalog_is_available_without_local_release(tmp_path: Path) -> None:
     payload = response.json()
     assert len(payload["methods"]) == 10
     assert payload["dataset"]["available"] is False
-

@@ -51,10 +51,19 @@ def collect_health(settings: Settings) -> dict[str, Any]:
         "upstream": upstream,
         "provider": {
             "configured": settings.api_key_configured,
+            "stub": settings.llm_stub,
+            "ready": settings.provider_ready,
             "base_url": settings.openai_base_url,
             "model": settings.model,
             "reasoning_effort": settings.reasoning_effort,
         },
         "defaults": {"concurrency": settings.default_concurrency},
+        "execution": {
+            "available": bool(ready and settings.provider_ready),
+            "message": (
+                "Ready to execute official methods."
+                if ready and settings.provider_ready
+                else "Configure OPENAI_API_KEY or enable the deterministic stub."
+            ),
+        },
     }
-

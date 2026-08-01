@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     reasoning_effort: str = Field(
         default="medium", alias="TEND_EVAL_REASONING_EFFORT"
     )
+    llm_stub: bool = Field(default=False, alias="TEND_EVAL_LLM_STUB")
+    provider_max_retries: int = Field(default=5, ge=-1, alias="TEND_EVAL_PROVIDER_MAX_RETRIES")
 
     mongodb_uri: str = Field(
         default="mongodb://127.0.0.1:27017", alias="MONGODB_URI"
@@ -50,6 +52,8 @@ class Settings(BaseSettings):
     default_concurrency: int = Field(
         default=4, ge=1, le=128, alias="TEND_EVAL_DEFAULT_CONCURRENCY"
     )
+    baseline_sample_size: int = Field(default=8, ge=1, le=100)
+    baseline_witness_k: int = Field(default=3, ge=0, le=20)
     frontend_origin: str = Field(
         default="http://127.0.0.1:5173", alias="TEND_EVAL_FRONTEND_ORIGIN"
     )
@@ -77,6 +81,10 @@ class Settings(BaseSettings):
     @property
     def api_key_configured(self) -> bool:
         return bool(self.openai_api_key and not self.openai_api_key.startswith("your-"))
+
+    @property
+    def provider_ready(self) -> bool:
+        return self.api_key_configured or self.llm_stub
 
 
 @lru_cache
