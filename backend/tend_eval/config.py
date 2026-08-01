@@ -71,6 +71,10 @@ class Settings(BaseSettings):
         return self.tend_release_dir / "schema" / "mongodb_schema"
 
     @property
+    def sqlite_path(self) -> Path:
+        return self.runtime_dir / "tend-evaluation.sqlite3"
+
+    @property
     def api_key_configured(self) -> bool:
         return bool(self.openai_api_key and not self.openai_api_key.startswith("your-"))
 
@@ -78,4 +82,3 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
-
