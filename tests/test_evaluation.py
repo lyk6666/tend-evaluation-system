@@ -3,7 +3,11 @@ from pathlib import Path
 
 from tend_eval.config import Settings
 from tend_eval.contracts import WorkItemView
-from tend_eval.evaluation import OfficialEvaluationService, _system_slice_aggregates
+from tend_eval.evaluation import (
+    OfficialEvaluationService,
+    _EvaluationMongoExecutor,
+    _system_slice_aggregates,
+)
 from tend_eval.store import RunStore
 
 
@@ -44,9 +48,11 @@ def test_prediction_normalizes_system_identity_and_failures() -> None:
     assert "MQL" not in failed
 
 
-def test_evaluation_dataset_is_scoped_and_uses_empty_witnesses(tmp_path: Path) -> None:
+def test_evaluation_dataset_is_scoped_and_links_official_release_files(tmp_path: Path) -> None:
     release = tmp_path / "release"
     (release / "data").mkdir(parents=True)
+    (release / "mongodb_data").mkdir()
+    (release / "schema" / "mongodb_schema").mkdir(parents=True)
     (release / "data" / "TEND.json").write_text(
         json.dumps(
             [
@@ -55,6 +61,12 @@ def test_evaluation_dataset_is_scoped_and_uses_empty_witnesses(tmp_path: Path) -
             ]
         ),
         encoding="utf-8",
+    )
+    witness = '{"collection": [{"value": 1}]}'
+    schema = '{"collection": {"value": "int"}}'
+    (release / "mongodb_data" / "db-a.json").write_text(witness, encoding="utf-8")
+    (release / "schema" / "mongodb_schema" / "db-a.json").write_text(
+        schema, encoding="utf-8"
     )
     settings = Settings(
         _env_file=None,
@@ -71,9 +83,53 @@ def test_evaluation_dataset_is_scoped_and_uses_empty_witnesses(tmp_path: Path) -
 
     selected = json.loads((dataset / "data" / "TEND.json").read_text(encoding="utf-8"))
     assert [(row["db_id"], row["record_id"]) for row in selected] == [("db-a", 7)]
-    assert (dataset / "mongodb_data" / "db-a.json").read_text(encoding="utf-8") == "{}"
+    assert (dataset / "mongodb_data" / "db-a.json").read_text(encoding="utf-8") == witness
+    assert (
+        dataset / "schema" / "mongodb_schema" / "db-a.json"
+    ).read_text(encoding="utf-8") == schema
     manifest = json.loads((dataset / "evaluation_selection.json").read_text(encoding="utf-8"))
     assert manifest["record_count"] == 1
+
+
+def test_evaluation_executor_uses_configured_timeout(monkeypatch) -> None:
+    calls = []
+
+    class Collection:
+        def aggregate(self, pipeline, **kwargs):
+            calls.append((pipeline, kwargs))
+            return [{"answer": 1}]
+
+    class Database:
+        def __getitem__(self, name):
+            assert name == "collection"
+            return Collection()
+
+    class Delegate:
+        def available(self):
+            return True
+
+        def load_witness(self, db_id, collections):
+            return None
+
+        def raw_database(self, db_id):
+            assert db_id == "db-a"
+            return Database()
+
+    monkeypatch.setattr("tend.execution.mongo._normalize_doc", lambda document: document)
+    gold_mql = 'db.collection.aggregate([{"$limit": 1}])'
+    executor = _EvaluationMongoExecutor(
+        Delegate(),
+        120_000,
+        frozenset({("db-a", gold_mql)}),
+    )
+    result = executor.norm_exec("db-a", gold_mql)
+    executor.norm_exec("db-a", "db.collection.aggregate([])")
+
+    assert result == [{"answer": 1}]
+    assert calls == [
+        ([{"$limit": 1}], {"maxTimeMS": 120_000}),
+        ([], {"maxTimeMS": 30_000}),
+    ]
 
 
 def test_system_slice_aggregates_are_per_method(tmp_path: Path) -> None:

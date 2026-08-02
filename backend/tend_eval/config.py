@@ -35,6 +35,12 @@ class Settings(BaseSettings):
     mongodb_uri: str = Field(
         default="mongodb://127.0.0.1:27017", alias="MONGODB_URI"
     )
+    evaluation_mongo_max_time_ms: int = Field(
+        default=120_000,
+        ge=30_000,
+        le=900_000,
+        alias="TEND_EVAL_MONGO_MAX_TIME_MS",
+    )
     tend_source_dir: Path = Field(
         default=WORKSPACE_ROOT / "TEND_QueryCraft", alias="TEND_SOURCE_DIR"
     )

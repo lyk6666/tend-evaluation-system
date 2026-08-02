@@ -15,6 +15,62 @@ EXPORT_KINDS = frozenset(
 )
 
 
+class _EvaluationMongoExecutor:
+    """Use the upstream NormExec contract with an evaluation-sized time budget.
+
+    The public TEND MongoExecutor intentionally caps every solver probe at 30 seconds.
+    Some official gold queries exceed that probe budget on commodity machines, so the
+    evaluation service keeps the exact upstream parse, safety, execution, error, and
+    normalization path while supplying a separately configurable server-side timeout.
+    """
+
+    def __init__(
+        self,
+        delegate: Any,
+        max_time_ms: int,
+        gold_queries: frozenset[tuple[str, str]],
+    ):
+        self._delegate = delegate
+        self._max_time_ms = max_time_ms
+        self._gold_queries = gold_queries
+
+    def available(self) -> bool:
+        return bool(self._delegate.available())
+
+    def load_witness(
+        self, db_id: str, collections: dict[str, list[dict[str, Any]]]
+    ) -> None:
+        self._delegate.load_witness(db_id, collections)
+
+    def norm_exec(self, db_id: str, mql: str) -> list[dict[str, Any]]:
+        from tend.errors import ExecutionError
+        from tend.execution.ast_check import assert_no_disabled, parse_pipeline
+        from tend.execution.mongo import _normalize_doc
+
+        assert_no_disabled(mql)
+        collection, pipeline = parse_pipeline(mql)
+        max_time_ms = (
+            self._max_time_ms if (db_id, mql) in self._gold_queries else 30_000
+        )
+        try:
+            raw = list(
+                self._delegate.raw_database(db_id)[collection].aggregate(
+                    pipeline,
+                    maxTimeMS=max_time_ms,
+                )
+            )
+        except Exception as exc:  # noqa: BLE001 - match the upstream executor boundary
+            raise ExecutionError(
+                "aggregate execution failed",
+                context={
+                    "db_id": db_id,
+                    "collection": collection,
+                    "error": str(exc)[:300],
+                },
+            ) from exc
+        return [_normalize_doc(document) for document in raw]
+
+
 class OfficialEvaluationService:
     """Run the upstream TEND evaluator and expose its unmodified report artifacts."""
 
@@ -54,6 +110,11 @@ class OfficialEvaluationService:
 
         run_root = self.settings.runtime_dir / "runs" / run_id / "evaluation"
         dataset_dir = self._write_evaluation_dataset(run_root, benchmark_items, run_id)
+        executor = _EvaluationMongoExecutor(
+            runtime.mongo,
+            self.settings.evaluation_mongo_max_time_ms,
+            _gold_query_keys(dataset_dir),
+        )
         artifacts: dict[str, dict[str, str]] = {}
         for track in tracks:
             track_items = [item for item in benchmark_items if item.track == track]
@@ -69,7 +130,7 @@ class OfficialEvaluationService:
                 experiment_kind="evaluation_system",
                 run_id=f"{run_id}:{track}",
                 logger=runtime.log,
-                executor=runtime.mongo,
+                executor=executor,
                 max_workers=run.concurrency,
             )
             if output.status == "failed":
@@ -99,16 +160,22 @@ class OfficialEvaluationService:
         dataset_dir = run_root / "release"
         data_dir = dataset_dir / "data"
         witness_dir = dataset_dir / "mongodb_data"
+        schema_dir = dataset_dir / "schema" / "mongodb_schema"
         data_dir.mkdir(parents=True, exist_ok=True)
         witness_dir.mkdir(parents=True, exist_ok=True)
+        schema_dir.mkdir(parents=True, exist_ok=True)
         (data_dir / "TEND.json").write_text(
             json.dumps(subset, ensure_ascii=False), encoding="utf-8"
         )
         for db_id in sorted({db_id for db_id, _ in selected}):
-            # The official Mongo executor is configured to reuse the user's existing
-            # databases, so load_witness() is a no-op. Empty mappings satisfy the release
-            # layout without parsing the multi-gigabyte raw export again.
-            (witness_dir / f"{db_id}.json").write_text("{}", encoding="utf-8")
+            source_witness = self.settings.tend_release_dir / "mongodb_data" / f"{db_id}.json"
+            if not source_witness.is_file():
+                raise RuntimeError(f"official MongoDB witness data is missing: {source_witness}")
+            _link_or_copy(source_witness, witness_dir / source_witness.name)
+
+            source_schema = self.settings.schema_dir / f"{db_id}.json"
+            if source_schema.is_file():
+                _link_or_copy(source_schema, schema_dir / source_schema.name)
         (dataset_dir / "evaluation_selection.json").write_text(
             json.dumps(
                 {
@@ -237,6 +304,35 @@ def _safe_artifact(settings: Settings, run_id: str, value: str | None) -> Path |
     except ValueError:
         return None
     return candidate
+
+
+def _link_or_copy(source: Path, destination: Path) -> None:
+    """Materialize upstream release files using its hardlink/symlink/copy fallback."""
+    import shutil
+
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    if destination.exists() or destination.is_symlink():
+        destination.unlink()
+    try:
+        destination.hardlink_to(source)
+        return
+    except OSError:
+        pass
+    try:
+        destination.symlink_to(source.resolve())
+        return
+    except OSError:
+        pass
+    shutil.copy2(source, destination)
+
+
+def _gold_query_keys(dataset_dir: Path) -> frozenset[tuple[str, str]]:
+    records = json.loads((dataset_dir / "data" / "TEND.json").read_text(encoding="utf-8"))
+    return frozenset(
+        (str(record.get("db_id") or ""), str(record.get("MQL") or ""))
+        for record in records
+        if isinstance(record, dict)
+    )
 
 
 def _system_slice_aggregates(path: Path | None) -> dict[str, Any]:

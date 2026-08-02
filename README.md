@@ -82,7 +82,8 @@ mutually exclusive outcome decomposition, and record-level diagnostics. Official
 JSON/Markdown and per-record CSV/JSONL are downloadable from the same workspace.
 
 To verify the evaluator against the existing MongoDB databases without making a provider
-request, run the one-record gold-query smoke test:
+request, run the one-record gold-query smoke test. It defaults to official record 362579,
+the slow gold pipeline that catches accidental reuse of the solver's 30-second probe cap:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\smoke_evaluation.py
@@ -100,6 +101,7 @@ OPENAI_API_KEY=your-key-here
 OPENAI_BASE_URL=https://api.openai.com/v1
 TEND_EVAL_MODEL=gpt-5.6-luna
 TEND_EVAL_REASONING_EFFORT=medium
+TEND_EVAL_MONGO_MAX_TIME_MS=120000
 ```
 
 For a no-cost plumbing check, set `TEND_EVAL_LLM_STUB=1`. Stub output verifies method,
@@ -116,9 +118,12 @@ Every run writes a secret-free manifest and append-only prediction JSONL under
 
 Evaluation artifacts are stored by track under
 `data/runtime/runs/<run-id>/evaluation/<track>/report/`. A run-scoped release subset fixes
-the denominator to the selected databases. Because the evaluator is configured to reuse
-the existing MongoDB databases, its staging release uses empty witness mappings and does
-not parse the 5.3 GB raw export a second time.
+the denominator to the selected databases. It follows the upstream evaluator layout and
+links the official witness and schema files into the staging release; on the normal
+same-volume setup, hardlinks avoid duplicating the multi-gigabyte export. The evaluator
+reuses the already loaded exact-name MongoDB databases. `TEND_EVAL_MONGO_MAX_TIME_MS`
+defaults to 120 seconds because some official gold pipelines exceed the upstream solver's
+30-second probe budget on commodity machines.
 
 The public upstream checkout currently omits its referenced
 `proposals/schemas/solver_allow_list.json`. The compatibility boundary allows the public

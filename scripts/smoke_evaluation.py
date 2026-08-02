@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import uuid
 
 from tend_eval.config import Settings
@@ -18,7 +19,14 @@ async def main() -> None:
         TEND_EVAL_LLM_STUB=True,
         TEND_EVAL_RUNTIME_DIR=f"data/runtime/evaluator-smoke-{uuid.uuid4().hex[:8]}",
     )
-    record = json.loads(settings.dataset_path.read_text(encoding="utf-8"))[0]
+    records = json.loads(settings.dataset_path.read_text(encoding="utf-8"))
+    record_id = int(os.getenv("TEND_EVAL_SMOKE_RECORD_ID", "362579"))
+    record = next(
+        (candidate for candidate in records if candidate.get("record_id") == record_id),
+        None,
+    )
+    if record is None:
+        raise RuntimeError(f"smoke record not found: {record_id}")
     store = RunStore(settings.sqlite_path)
     store.initialize()
     request = RunCreate(
