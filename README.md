@@ -18,25 +18,62 @@ run so results remain reproducible.
 ## Local development
 
 Requirements: Python 3.11+, Node.js 18+, pnpm, MongoDB, and the official TEND checkout in
-the adjacent `TEND_QueryCraft` directory.
+the adjacent `TEND_QueryCraft` directory. Use a real CPython installation, not the Windows
+Store `python.exe` app-execution alias.
 
 ```powershell
 Copy-Item .env.example .env
-python -m venv .venv
+$pythonExecutable = "C:\Path\To\CPython\python.exe"
+& $pythonExecutable --version
+& $pythonExecutable -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
 .\.venv\Scripts\python.exe -m pip install -e "..\TEND_QueryCraft"
-pnpm --dir frontend install
+pnpm.cmd --dir frontend install
 ```
 
 Start the API and UI in separate terminals:
 
+Terminal 1:
+
 ```powershell
-.\scripts\start-backend.ps1
-.\scripts\start-frontend.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\start-backend.ps1
 ```
+
+Terminal 2:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\start-frontend.ps1
+```
+
+The backend script invokes `.venv\Scripts\python.exe` directly and verifies its compiled
+dependencies before starting, so it cannot silently fall back to a global Python
+interpreter. The frontend is independent of Python and checks only pnpm and its installed
+Node dependencies.
 
 The API is served at `http://127.0.0.1:8000`; the dashboard is served at
 `http://127.0.0.1:5173`.
+
+### Repair a broken virtual environment
+
+`ModuleNotFoundError: No module named 'pydantic_core._pydantic_core'` almost always means
+the virtual environment was created by a different or unavailable Python interpreter. Stop
+the backend first, then recreate the environment with a working CPython 3.11+ executable:
+
+```powershell
+Remove-Item .venv -Recurse -Force
+& "C:\Path\To\python.exe" -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -m pip install -e "..\TEND_QueryCraft"
+pnpm.cmd --dir frontend install
+```
+
+The commands above do not require virtual-environment activation. The `-ExecutionPolicy
+Bypass` flag applies only to the child PowerShell process used to launch each checked-in
+start script; it does not change the user's persistent execution policy.
+
+Do not recreate `.venv` with the Windows Store Python app-execution alias. In particular,
+mixing a Python 3.13 environment with a `pydantic_core` wheel built for Python 3.12 causes
+this exact module-not-found error.
 
 When a benchmark run finishes (including an intentionally cancelled or partially failed
 run), the service automatically invokes the official TEND evaluator once per selected
