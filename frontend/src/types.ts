@@ -175,3 +175,164 @@ export type ResultRecordPage = {
   limit: number;
   items: ResultRecord[];
 };
+
+export type AnchorKind =
+  | "entity"
+  | "attribute"
+  | "measure"
+  | "stored_literal"
+  | "query_constant"
+  | "temporal"
+  | "operation"
+  | "comparison"
+  | "output"
+  | "relationship"
+  | "grouping"
+  | "sort"
+  | "tie_policy"
+  | "quantifier"
+  | "negation";
+
+export type TypedSemanticAnchor = {
+  anchor_id: string;
+  kind: AnchorKind;
+  surface: string;
+  canonical: string;
+  description: string;
+  semantic_role: string;
+  expected_bson_types: string[];
+  explicit: boolean;
+  source: "rule" | "llm" | "inferred" | "merged";
+  start: number | null;
+  end: number | null;
+  confidence: number;
+  alternatives: string[];
+  retrieval_required: boolean;
+};
+
+export type AnchorRelation = {
+  relation_id: string;
+  source_anchor_id: string;
+  target_anchor_id: string;
+  relation_type: string;
+  description: string;
+  confidence: number;
+  source: string;
+};
+
+export type NormalizedQuestion = {
+  original_text: string;
+  normalized_text: string;
+  locale: string;
+  timezone: string;
+  reference_time: string;
+  clauses: Array<{ clause_id: string; text: string; start: number; end: number }>;
+  scalars: Array<{
+    scalar_id: string;
+    surface: string;
+    normalized: unknown;
+    scalar_type: string;
+    context: string;
+    start: number;
+    end: number;
+  }>;
+  cues: Array<{
+    cue_id: string;
+    surface: string;
+    category: string;
+    canonical: string;
+    scope_hint: string;
+    start: number;
+    end: number;
+    source: string;
+  }>;
+  semantic_spans: string[];
+  notes: string[];
+};
+
+export type AnchorAmbiguity = {
+  ambiguity_id: string;
+  text: string;
+  ambiguity_type: string;
+  anchor_ids: string[];
+  interpretations: string[];
+  recommended_interpretation: string;
+  reason: string;
+  blocking: boolean;
+  confidence: number;
+};
+
+export type RetrievalSpecification = {
+  specification_id: string;
+  anchor_ids: string[];
+  search_kind: "path" | "value_path_group" | "type_compatible_path" | "relationship" | "structure" | "none";
+  query_terms: string[];
+  semantic_query: string;
+  expected_bson_types: string[];
+  structural_constraints: string[];
+  required: boolean;
+  rationale: string;
+};
+
+export type AnchorStageTrace = {
+  stage: string;
+  status: "pending" | "running" | "completed" | "failed" | "skipped";
+  started_at: string | null;
+  completed_at: string | null;
+  duration_ms: number | null;
+  summary: string;
+  artifact: unknown;
+  error: string | null;
+};
+
+export type AnchorRunView = {
+  run_id: string;
+  question: string;
+  mode: "auto" | "llm" | "deterministic";
+  locale: string;
+  timezone: string;
+  status: "created" | "running" | "completed" | "failed";
+  created_at: string;
+  updated_at: string;
+  model_id: string;
+  stages: AnchorStageTrace[];
+  normalized_question: NormalizedQuestion | null;
+  deterministic_extraction: {
+    anchors: TypedSemanticAnchor[];
+    relations: AnchorRelation[];
+    unresolved_phrases: string[];
+    notes: string[];
+  } | null;
+  semantic_extraction: {
+    anchors: TypedSemanticAnchor[];
+    relations: AnchorRelation[];
+    notes: string[];
+  } | null;
+  ambiguity_extraction: {
+    ambiguities: AnchorAmbiguity[];
+    notes: string[];
+  } | null;
+  anchor_graph: {
+    nodes: TypedSemanticAnchor[];
+    edges: AnchorRelation[];
+    root_anchor_ids: string[];
+    connected_components: string[][];
+    validation_warnings: string[];
+  } | null;
+  retrieval_specifications: {
+    specifications: RetrievalSpecification[];
+    notes: string[];
+  } | null;
+  anchor_bundle: {
+    question: string;
+    normalized_question: NormalizedQuestion;
+    anchors: TypedSemanticAnchor[];
+    relations: AnchorRelation[];
+    ambiguities: AnchorAmbiguity[];
+    retrieval_specifications: RetrievalSpecification[];
+    coverage_score: number;
+    ready_for_retrieval: boolean;
+    validation_warnings: string[];
+  } | null;
+  failure: string | null;
+};

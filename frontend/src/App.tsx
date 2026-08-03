@@ -17,12 +17,14 @@ import {
   Server,
   Settings2,
   ShieldCheck,
+  Sparkles,
   Square,
   TerminalSquare,
   XCircle
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "./api";
+import { NewMethodsPage } from "./NewMethodsPage";
 import type {
   Catalog,
   EvaluationResults,
@@ -59,6 +61,9 @@ function countLabel(value: number, singular: string) {
 }
 
 export default function App() {
+  const [page, setPage] = useState<"evaluation" | "new-methods">(() =>
+    window.location.pathname.startsWith("/new-methods") ? "new-methods" : "evaluation"
+  );
   const [mode, setMode] = useState<Mode>("benchmark");
   const [health, setHealth] = useState<Health | null>(null);
   const [catalog, setCatalog] = useState<Catalog | null>(null);
@@ -76,6 +81,20 @@ export default function App() {
   const [executeCustom, setExecuteCustom] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+  const navigate = useCallback((nextPage: "evaluation" | "new-methods") => {
+    const path = nextPage === "new-methods" ? "/new-methods" : "/";
+    if (window.location.pathname !== path) window.history.pushState({}, "", path);
+    setPage(nextPage);
+  }, []);
+
+  useEffect(() => {
+    const onPopState = () => setPage(
+      window.location.pathname.startsWith("/new-methods") ? "new-methods" : "evaluation"
+    );
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
 
   const refreshSystem = useCallback(async () => {
     const [healthValue, catalogValue, runValues] = await Promise.all([
@@ -189,6 +208,10 @@ export default function App() {
     }
   };
 
+  if (page === "new-methods") {
+    return <NewMethodsPage health={health} onNavigate={navigate} />;
+  }
+
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -200,6 +223,7 @@ export default function App() {
           <button className="active" onClick={() => document.getElementById("runs")?.scrollIntoView({ behavior: "smooth" })}><Activity size={16} /> Runs</button>
           <button onClick={() => document.getElementById("results")?.scrollIntoView({ behavior: "smooth" })}><BarChart3 size={16} /> Results</button>
           <button onClick={() => document.getElementById("settings")?.scrollIntoView({ behavior: "smooth" })}><Settings2 size={16} /> Settings</button>
+          <button onClick={() => navigate("new-methods")}><Sparkles size={16} /> New Methods</button>
         </nav>
         <button className="refresh-button" onClick={() => refreshSystem()} title="Refresh system">
           <RotateCw size={15} />

@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .contracts import (
+    AnchorRunView,
     EvaluationStatus,
     EvaluationView,
     EventView,
@@ -778,3 +779,88 @@ class RunStore:
             finished_at=row["finished_at"],
             error=row["error"],
         )
+
+
+class AnchorRunStore:
+    """SQLite persistence for schema-independent anchor extraction runs."""
+
+    def __init__(self, path: Path):
+        self.path = path
+
+    @contextmanager
+    def connect(self):
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        connection = sqlite3.connect(self.path, timeout=30, isolation_level=None)
+        connection.row_factory = sqlite3.Row
+        connection.execute("PRAGMA journal_mode = WAL")
+        connection.execute("PRAGMA busy_timeout = 30000")
+        try:
+            yield connection
+        finally:
+            connection.close()
+
+    def initialize(self) -> None:
+        with self.connect() as connection:
+            connection.executescript(
+                """
+                CREATE TABLE IF NOT EXISTS anchor_runs (
+                    run_id TEXT PRIMARY KEY,
+                    question TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    payload_json TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_anchor_runs_updated
+                    ON anchor_runs(updated_at DESC);
+                """
+            )
+
+    def save(self, run: AnchorRunView) -> None:
+        run.updated_at = datetime.now(UTC)
+        payload = run.model_dump_json()
+        with self.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            connection.execute(
+                """
+                INSERT INTO anchor_runs (
+                    run_id, question, status, created_at, updated_at, payload_json
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(run_id) DO UPDATE SET
+                    status = excluded.status,
+                    updated_at = excluded.updated_at,
+                    payload_json = excluded.payload_json
+                """,
+                (
+                    run.run_id,
+                    run.question,
+                    str(run.status),
+                    run.created_at.isoformat(),
+                    run.updated_at.isoformat(),
+                    payload,
+                ),
+            )
+            connection.execute("COMMIT")
+
+    def get(self, run_id: str) -> AnchorRunView | None:
+        with self.connect() as connection:
+            row = connection.execute(
+                "SELECT payload_json FROM anchor_runs WHERE run_id = ?", (run_id,)
+            ).fetchone()
+        return AnchorRunView.model_validate_json(row["payload_json"]) if row else None
+
+    def list(self, limit: int = 50) -> list[AnchorRunView]:
+        safe_limit = max(1, min(limit, 200))
+        with self.connect() as connection:
+            rows = connection.execute(
+                "SELECT payload_json FROM anchor_runs ORDER BY updated_at DESC LIMIT ?",
+                (safe_limit,),
+            ).fetchall()
+        return [AnchorRunView.model_validate_json(row["payload_json"]) for row in rows]
+
+    def delete(self, run_id: str) -> bool:
+        with self.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            cursor = connection.execute("DELETE FROM anchor_runs WHERE run_id = ?", (run_id,))
+            connection.execute("COMMIT")
+            return cursor.rowcount > 0

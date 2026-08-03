@@ -1,4 +1,5 @@
 import type {
+  AnchorRunView,
   Catalog,
   EvaluationResults,
   Health,
@@ -17,6 +18,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const payload = await response.json().catch(() => null) as { detail?: string } | null;
     throw new Error(payload?.detail ?? `Request failed (${response.status})`);
   }
+  if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
 }
 
@@ -47,5 +49,20 @@ export const api = {
     return request<ResultRecordPage>(`/api/runs/${runId}/results/records?${query}`);
   },
   evaluate: (runId: string) =>
-    request<EvaluationResults>(`/api/runs/${runId}/evaluate`, { method: "POST" })
+    request<EvaluationResults>(`/api/runs/${runId}/evaluate`, { method: "POST" }),
+  anchorRuns: (limit = 50) =>
+    request<AnchorRunView[]>(`/api/new-methods/anchor-runs?limit=${limit}`),
+  anchorRun: (runId: string) =>
+    request<AnchorRunView>(`/api/new-methods/anchor-runs/${runId}`),
+  createAnchorRun: (payload: {
+    question: string;
+    mode: "auto" | "llm" | "deterministic";
+    locale?: string;
+    timezone?: string;
+  }) => request<AnchorRunView>("/api/new-methods/anchor-runs", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  }),
+  deleteAnchorRun: (runId: string) =>
+    request<void>(`/api/new-methods/anchor-runs/${runId}`, { method: "DELETE" })
 };

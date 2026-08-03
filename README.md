@@ -4,6 +4,12 @@ TEND Evaluation System is a local-first research dashboard for running the offic
 [TEND](https://github.com/Jinwei-Lu/Text-to-NoSQL) baselines and full SAG v3 solver,
 monitoring long benchmark runs, and inspecting EXC, EXF1, claim-axis, and outcome results.
 
+The top-bar **New Methods** workspace also contains the typed semantic-anchor extraction
+prototype. It runs independently from benchmark execution and persists seven inspectable
+artifacts: normalization, deterministic extraction, semantic extraction, ambiguity
+extraction, anchor graph, future retrieval specifications, and the final `AnchorBundle`.
+This workflow deliberately stops before schema retrieval, MongoDB access, and planning.
+
 The system keeps the official TEND implementation as an external checkout. It does not
 vendor or republish upstream source code. The adapter records the upstream commit for every
 run so results remain reproducible.

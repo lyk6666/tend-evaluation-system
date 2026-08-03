@@ -6,19 +6,28 @@ import json
 from typing import Any
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Query, Request, status
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 
 from . import __version__
+from .anchors import AnchorExtractionPipeline
 from .catalog import build_catalog
 from .config import Settings, get_settings
-from .contracts import EvaluationView, RunCreate, RunView, WorkItemView, WorkStatus
+from .contracts import (
+    AnchorRunCreate,
+    AnchorRunView,
+    EvaluationView,
+    RunCreate,
+    RunView,
+    WorkItemView,
+    WorkStatus,
+)
 from .evaluation import load_result_records, load_results, resolve_export
 from .executor import TendMethodExecutor
 from .health import collect_health
 from .orchestrator import RunOrchestrator, WorkExecutor
-from .store import RunStore
+from .store import AnchorRunStore, RunStore
 from .workloads import build_work_items
 
 
@@ -29,6 +38,8 @@ def create_app(
 ) -> FastAPI:
     active_settings = settings or get_settings()
     store = RunStore(active_settings.sqlite_path)
+    anchor_store = AnchorRunStore(active_settings.sqlite_path)
+    anchor_pipeline = AnchorExtractionPipeline(active_settings, anchor_store)
     active_executor = executor or TendMethodExecutor(active_settings, store)
     orchestrator = RunOrchestrator(
         store,
@@ -41,6 +52,7 @@ def create_app(
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         active_settings.runtime_dir.mkdir(parents=True, exist_ok=True)
+        anchor_store.initialize()
         await orchestrator.start()
         try:
             yield
@@ -56,6 +68,8 @@ def create_app(
     app.state.settings = active_settings
     app.state.store = store
     app.state.orchestrator = orchestrator
+    app.state.anchor_store = anchor_store
+    app.state.anchor_pipeline = anchor_pipeline
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[
@@ -242,6 +256,49 @@ def create_app(
             media_type="text/event-stream",
             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
         )
+
+    @app.post(
+        "/api/new-methods/anchor-runs",
+        response_model=AnchorRunView,
+        status_code=status.HTTP_202_ACCEPTED,
+    )
+    def create_anchor_run(
+        payload: AnchorRunCreate,
+        request: Request,
+        background_tasks: BackgroundTasks,
+    ) -> AnchorRunView:
+        run = request.app.state.anchor_pipeline.create_run(payload)
+        background_tasks.add_task(request.app.state.anchor_pipeline.run, run.run_id)
+        return run
+
+    @app.get("/api/new-methods/anchor-runs", response_model=list[AnchorRunView])
+    def list_anchor_runs(
+        request: Request,
+        limit: int = Query(default=50, ge=1, le=200),
+    ) -> list[AnchorRunView]:
+        return request.app.state.anchor_store.list(limit)
+
+    @app.get(
+        "/api/new-methods/anchor-runs/{run_id}",
+        response_model=AnchorRunView,
+    )
+    def get_anchor_run(run_id: str, request: Request) -> AnchorRunView:
+        run = request.app.state.anchor_store.get(run_id)
+        if run is None:
+            raise HTTPException(status_code=404, detail="anchor extraction run not found")
+        return run
+
+    @app.delete(
+        "/api/new-methods/anchor-runs/{run_id}",
+        status_code=status.HTTP_204_NO_CONTENT,
+    )
+    def delete_anchor_run(run_id: str, request: Request) -> None:
+        run = request.app.state.anchor_store.get(run_id)
+        if run is None:
+            raise HTTPException(status_code=404, detail="anchor extraction run not found")
+        if run.status not in {"completed", "failed"}:
+            raise HTTPException(status_code=409, detail="an active anchor run cannot be deleted")
+        request.app.state.anchor_store.delete(run_id)
 
     @app.get("/")
     def root() -> dict[str, str]:
