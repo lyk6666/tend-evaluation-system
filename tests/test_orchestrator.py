@@ -171,3 +171,47 @@ async def test_orchestrator_regenerates_rejected_attempt_until_accepted(tmp_path
         assert item.status == "succeeded"
     finally:
         await orchestrator.stop()
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_blocks_after_the_generation_attempt_budget(tmp_path: Path) -> None:
+    store = RunStore(tmp_path / "runs.sqlite3")
+    store.initialize()
+
+    async def executor(item):
+        raise RuntimeError("empty MQL")
+
+    request = RunCreate(
+        mode=RunMode.CUSTOM_QUERY,
+        method_ids=["direct"],
+        database_id="financial",
+        question="test",
+        concurrency=1,
+    )
+    run = store.create_run(
+        request, _items(1), model="gpt-5.6-luna", reasoning_effort="medium", concurrency=1
+    )
+    orchestrator = RunOrchestrator(
+        store,
+        executor,
+        poll_interval=0.005,
+        retry_initial_delay=0.01,
+        retry_max_delay=0.01,
+        max_generation_attempts=2,
+    )
+    await orchestrator.start()
+    try:
+        for _ in range(400):
+            current = store.get_run(run.id)
+            if current and current.status == RunStatus.FAILED:
+                break
+            await asyncio.sleep(0.01)
+        current = store.get_run(run.id)
+        assert current and current.status == RunStatus.FAILED
+        assert current.failed_items == 1
+        item = store.list_work_items(run.id)[0]
+        assert item.attempt == 2
+        assert item.status == "failed"
+        assert item.error and "blocked after 2 attempts" in item.error
+    finally:
+        await orchestrator.stop()

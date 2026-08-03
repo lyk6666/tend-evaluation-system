@@ -28,12 +28,14 @@ class RunOrchestrator:
         poll_interval: float = 0.25,
         retry_initial_delay: float = 2.0,
         retry_max_delay: float = 60.0,
+        max_generation_attempts: int = 2,
     ):
         self.store = store
         self.executor = executor
         self.poll_interval = poll_interval
         self.retry_initial_delay = retry_initial_delay
         self.retry_max_delay = retry_max_delay
+        self.max_generation_attempts = max_generation_attempts
         self._manager: asyncio.Task[None] | None = None
         self._run_tasks: dict[str, asyncio.Task[None]] = {}
         self._stopping = False
@@ -158,12 +160,21 @@ class RunOrchestrator:
             else:
                 self.store.requeue_work(item.id)
             raise
-        except Exception as error:  # noqa: BLE001 - regenerate until the acceptance gate passes
-            self.store.retry_work(
-                item.id,
-                error=f"{type(error).__name__}: {error}",
-                delay_seconds=self._retry_delay(item.attempt),
-            )
+        except Exception as error:  # noqa: BLE001 - retry within the configured spend budget
+            message = f"{type(error).__name__}: {error}"
+            if item.attempt >= self.max_generation_attempts:
+                self.store.finish_work(
+                    item.id,
+                    error=(
+                        f"generation blocked after {item.attempt} attempts: {message}"
+                    ),
+                )
+            else:
+                self.store.retry_work(
+                    item.id,
+                    error=message,
+                    delay_seconds=self._retry_delay(item.attempt),
+                )
         else:
             self.store.finish_work(item.id, result=result)
 

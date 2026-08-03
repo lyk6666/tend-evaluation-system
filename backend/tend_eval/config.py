@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     retry_max_delay_seconds: float = Field(
         default=60.0, ge=1, le=3600, alias="TEND_EVAL_RETRY_MAX_DELAY_SECONDS"
     )
+    max_generation_attempts: int = Field(
+        default=2, ge=1, le=20, alias="TEND_EVAL_MAX_GENERATION_ATTEMPTS"
+    )
     generation_mongo_max_time_ms: int = Field(
         default=30_000, ge=1_000, le=900_000, alias="TEND_EVAL_GENERATION_MONGO_MAX_TIME_MS"
     )

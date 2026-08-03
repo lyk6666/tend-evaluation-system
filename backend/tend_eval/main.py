@@ -35,6 +35,7 @@ def create_app(
         active_executor,
         retry_initial_delay=active_settings.retry_initial_delay_seconds,
         retry_max_delay=active_settings.retry_max_delay_seconds,
+        max_generation_attempts=active_settings.max_generation_attempts,
     )
 
     @asynccontextmanager
