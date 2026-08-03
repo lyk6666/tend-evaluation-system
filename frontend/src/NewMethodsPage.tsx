@@ -11,15 +11,18 @@ import {
   FileJson2,
   GitBranch,
   LoaderCircle,
+  Maximize2,
+  Minus,
   Network,
   Plus,
   RotateCw,
   Sparkles,
   Tags,
   Trash2,
+  ZoomIn,
   X
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "./api";
 import type {
   AnchorAmbiguity,
@@ -241,7 +244,7 @@ function StageArtifact({ run, stage, trace }: { run: AnchorRunView; stage: strin
   if (stage === "deterministic_extraction" && run.deterministic_extraction) return <ExtractionView title="Deterministic anchors" subtitle="Closed-vocabulary operators, explicit values, outputs, and conservative phrase candidates." anchors={run.deterministic_extraction.anchors} relations={run.deterministic_extraction.relations} notes={[...run.deterministic_extraction.notes, ...run.deterministic_extraction.unresolved_phrases.map((item) => `Unresolved: ${item}`)]} />;
   if (stage === "semantic_extraction" && run.semantic_extraction) return <ExtractionView title="Semantic anchors" subtitle="Entities, attributes, measures, relationships, outputs, and implicit scope." anchors={run.semantic_extraction.anchors} relations={run.semantic_extraction.relations} notes={run.semantic_extraction.notes} />;
   if (stage === "ambiguity_extraction" && run.ambiguity_extraction) return <AmbiguityView values={run.ambiguity_extraction.ambiguities} notes={run.ambiguity_extraction.notes} />;
-  if (stage === "anchor_graph" && run.anchor_graph) return <GraphView nodes={run.anchor_graph.nodes} edges={run.anchor_graph.edges} warnings={run.anchor_graph.validation_warnings} />;
+  if (stage === "anchor_graph" && run.anchor_graph) return <GraphView nodes={run.anchor_graph.nodes} edges={run.anchor_graph.edges} rootIds={run.anchor_graph.root_anchor_ids} warnings={run.anchor_graph.validation_warnings} />;
   if (stage === "retrieval_specifications" && run.retrieval_specifications) return <SpecificationView values={run.retrieval_specifications.specifications} notes={run.retrieval_specifications.notes} />;
   if (stage === "anchor_bundle" && run.anchor_bundle) return <BundleView value={run.anchor_bundle} />;
   return <Raw value={trace.artifact} />;
@@ -271,8 +274,280 @@ function AmbiguityView({ values, notes }: { values: AnchorAmbiguity[]; notes: st
   return <div className="anchor-stack"><Hero icon={<GitBranch size={20} />} label="Retained uncertainty" title={`${values.length} ambiguity candidates`} detail="Alternatives remain available for evidence-based resolution after extraction." /><div className="anchor-ambiguities">{values.map((item) => <article key={item.ambiguity_id}><div><span>{item.ambiguity_type}</span><code>{item.blocking ? "blocking" : "non-blocking"}</code></div><h3>{item.text}</h3><ul>{item.interpretations.map((value) => <li key={value}>{value}</li>)}</ul><p><strong>Recommended:</strong> {item.recommended_interpretation}</p><small>{item.reason}</small></article>)}</div><Notes title="Ambiguity policy" values={notes} /></div>;
 }
 
-function GraphView({ nodes, edges, warnings }: { nodes: TypedSemanticAnchor[]; edges: AnchorRelation[]; warnings: string[] }) {
-  return <div className="anchor-stack"><Hero icon={<Network size={20} />} label="Validated anchor graph" title={`${nodes.length} nodes · ${edges.length} edges`} detail="Every edge references a retained, span-audited anchor." /><AnchorCards values={nodes} />{edges.length > 0 && <RelationList values={edges} />}<Notes title="Graph warnings" values={warnings} danger /></div>;
+const TREE_NODE_WIDTH = 176;
+const TREE_NODE_HEIGHT = 68;
+const TREE_COLUMN_GAP = 94;
+const TREE_ROW_GAP = 30;
+
+type TreePoint = {
+  id: string;
+  x: number;
+  y: number;
+  depth: number;
+  parentId: string | null;
+};
+
+type TreeLayout = {
+  points: Map<string, TreePoint>;
+  roots: string[];
+  treeEdgeIds: Set<string>;
+  width: number;
+  height: number;
+};
+
+function buildTreeLayout(nodes: TypedSemanticAnchor[], edges: AnchorRelation[], requestedRoots: string[]): TreeLayout {
+  const nodeById = new Map(nodes.map((node) => [node.anchor_id, node]));
+  const neighbors = new Map<string, Array<{ id: string; edge: AnchorRelation }>>();
+  nodes.forEach((node) => neighbors.set(node.anchor_id, []));
+  edges.forEach((edge) => {
+    if (!nodeById.has(edge.source_anchor_id) || !nodeById.has(edge.target_anchor_id)) return;
+    neighbors.get(edge.source_anchor_id)?.push({ id: edge.target_anchor_id, edge });
+    neighbors.get(edge.target_anchor_id)?.push({ id: edge.source_anchor_id, edge });
+  });
+  neighbors.forEach((values) => values.sort((left, right) => {
+    const leftName = nodeById.get(left.id)?.canonical ?? left.id;
+    const rightName = nodeById.get(right.id)?.canonical ?? right.id;
+    return leftName.localeCompare(rightName);
+  }));
+
+  const roots = [...new Set(requestedRoots.filter((id) => nodeById.has(id)))];
+  const visited = new Set(roots);
+  const parentById = new Map<string, string | null>(roots.map((id) => [id, null]));
+  const depthById = new Map<string, number>(roots.map((id) => [id, 0]));
+  const children = new Map<string, string[]>(nodes.map((node) => [node.anchor_id, []]));
+  const treeEdgeIds = new Set<string>();
+
+  const walk = (initial: string[]) => {
+    const queue = [...initial];
+    while (queue.length) {
+      const current = queue.shift()!;
+      for (const neighbor of neighbors.get(current) ?? []) {
+        if (visited.has(neighbor.id)) continue;
+        visited.add(neighbor.id);
+        parentById.set(neighbor.id, current);
+        depthById.set(neighbor.id, (depthById.get(current) ?? 0) + 1);
+        children.get(current)?.push(neighbor.id);
+        treeEdgeIds.add(neighbor.edge.relation_id);
+        queue.push(neighbor.id);
+      }
+    }
+  };
+
+  if (roots.length) walk(roots);
+  nodes
+    .slice()
+    .sort((left, right) => left.canonical.localeCompare(right.canonical))
+    .forEach((node) => {
+      if (visited.has(node.anchor_id)) return;
+      roots.push(node.anchor_id);
+      visited.add(node.anchor_id);
+      parentById.set(node.anchor_id, null);
+      depthById.set(node.anchor_id, 0);
+      walk([node.anchor_id]);
+    });
+
+  let row = 0;
+  let maxDepth = 0;
+  const points = new Map<string, TreePoint>();
+  const place = (id: string): number => {
+    const childIds = children.get(id) ?? [];
+    let center: number;
+    if (!childIds.length) {
+      center = row * (TREE_NODE_HEIGHT + TREE_ROW_GAP) + TREE_NODE_HEIGHT / 2 + 28;
+      row += 1;
+    } else {
+      const childCenters = childIds.map(place);
+      center = (childCenters[0] + childCenters[childCenters.length - 1]) / 2;
+    }
+    const depth = depthById.get(id) ?? 0;
+    maxDepth = Math.max(maxDepth, depth);
+    points.set(id, {
+      id,
+      x: depth * (TREE_NODE_WIDTH + TREE_COLUMN_GAP) + 42,
+      y: center - TREE_NODE_HEIGHT / 2,
+      depth,
+      parentId: parentById.get(id) ?? null
+    });
+    return center;
+  };
+  roots.forEach((root, index) => {
+    if (index > 0) row += 0.35;
+    place(root);
+  });
+
+  return {
+    points,
+    roots,
+    treeEdgeIds,
+    width: Math.max(700, maxDepth * (TREE_NODE_WIDTH + TREE_COLUMN_GAP) + TREE_NODE_WIDTH + 84),
+    height: Math.max(430, row * (TREE_NODE_HEIGHT + TREE_ROW_GAP) + 56)
+  };
+}
+
+function GraphView({ nodes, edges, rootIds, warnings }: { nodes: TypedSemanticAnchor[]; edges: AnchorRelation[]; rootIds: string[]; warnings: string[] }) {
+  const layout = useMemo(() => buildTreeLayout(nodes, edges, rootIds), [nodes, edges, rootIds]);
+  const nodeById = useMemo(() => new Map(nodes.map((node) => [node.anchor_id, node])), [nodes]);
+  const [selectedId, setSelectedId] = useState(rootIds.find((id) => nodeById.has(id)) ?? nodes[0]?.anchor_id ?? "");
+  const [view, setView] = useState({ scale: 1, x: 24, y: 24 });
+  const [dragging, setDragging] = useState(false);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{ pointerId: number; startX: number; startY: number; viewX: number; viewY: number } | null>(null);
+
+  useEffect(() => {
+    if (!nodeById.has(selectedId)) setSelectedId(rootIds.find((id) => nodeById.has(id)) ?? nodes[0]?.anchor_id ?? "");
+  }, [nodeById, nodes, rootIds, selectedId]);
+
+  const fitToView = useCallback(() => {
+    const bounds = canvasRef.current?.getBoundingClientRect();
+    if (!bounds) return;
+    const scale = Math.min(1.25, Math.max(0.24, Math.min((bounds.width - 42) / layout.width, (bounds.height - 42) / layout.height)));
+    setView({
+      scale,
+      x: Math.max(18, (bounds.width - layout.width * scale) / 2),
+      y: Math.max(18, (bounds.height - layout.height * scale) / 2)
+    });
+  }, [layout.height, layout.width]);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(fitToView);
+    return () => window.cancelAnimationFrame(frame);
+  }, [fitToView]);
+
+  const zoomAt = (factor: number, clientX?: number, clientY?: number) => {
+    const bounds = canvasRef.current?.getBoundingClientRect();
+    if (!bounds) return;
+    const focusX = clientX == null ? bounds.width / 2 : clientX - bounds.left;
+    const focusY = clientY == null ? bounds.height / 2 : clientY - bounds.top;
+    setView((current) => {
+      const scale = Math.min(2.6, Math.max(0.22, current.scale * factor));
+      const ratio = scale / current.scale;
+      return {
+        scale,
+        x: focusX - (focusX - current.x) * ratio,
+        y: focusY - (focusY - current.y) * ratio
+      };
+    });
+  };
+
+  const selected = nodeById.get(selectedId) ?? null;
+  const selectedRelations = edges.filter((edge) => edge.source_anchor_id === selectedId || edge.target_anchor_id === selectedId);
+  const rootSet = new Set(layout.roots);
+
+  return <div className="anchor-stack anchor-graph-stack">
+    <Hero icon={<Network size={20} />} label="Validated anchor graph" title={`${nodes.length} nodes · ${edges.length} edges`} detail="Tree edges show the traversal hierarchy; dashed links preserve additional semantic relationships." />
+    <section className="anchor-tree-workspace">
+      <div className="anchor-tree-canvas" ref={canvasRef}>
+        <div className="anchor-tree-toolbar" aria-label="Graph view controls">
+          <button onClick={() => zoomAt(1.2)} title="Zoom in" aria-label="Zoom in"><ZoomIn size={15} /></button>
+          <button onClick={() => zoomAt(1 / 1.2)} title="Zoom out" aria-label="Zoom out"><Minus size={15} /></button>
+          <button onClick={fitToView} title="Fit graph to view" aria-label="Fit graph to view"><Maximize2 size={14} /></button>
+          <span>{Math.round(view.scale * 100)}%</span>
+        </div>
+        <div className="anchor-tree-hint"><Network size={12} /> Scroll to zoom · drag to pan · select a node</div>
+        <svg
+          className={dragging ? "dragging" : ""}
+          aria-label="Interactive typed semantic anchor tree"
+          onWheel={(event) => { event.preventDefault(); zoomAt(event.deltaY < 0 ? 1.12 : 1 / 1.12, event.clientX, event.clientY); }}
+          onPointerDown={(event) => {
+            if (event.button !== 0) return;
+            event.currentTarget.setPointerCapture(event.pointerId);
+            dragRef.current = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, viewX: view.x, viewY: view.y };
+            setDragging(true);
+          }}
+          onPointerMove={(event) => {
+            const drag = dragRef.current;
+            if (!drag || drag.pointerId !== event.pointerId) return;
+            setView((current) => ({ ...current, x: drag.viewX + event.clientX - drag.startX, y: drag.viewY + event.clientY - drag.startY }));
+          }}
+          onPointerUp={(event) => {
+            if (dragRef.current?.pointerId !== event.pointerId) return;
+            dragRef.current = null;
+            setDragging(false);
+            event.currentTarget.releasePointerCapture(event.pointerId);
+          }}
+          onPointerCancel={() => { dragRef.current = null; setDragging(false); }}
+        >
+          <defs>
+            <marker id="anchor-tree-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 8 4 L 0 8 z" /></marker>
+          </defs>
+          <g transform={`translate(${view.x} ${view.y}) scale(${view.scale})`}>
+            {edges.map((edge) => {
+              const source = layout.points.get(edge.source_anchor_id);
+              const target = layout.points.get(edge.target_anchor_id);
+              if (!source || !target) return null;
+              const sourceCenter = { x: source.x + TREE_NODE_WIDTH / 2, y: source.y + TREE_NODE_HEIGHT / 2 };
+              const targetCenter = { x: target.x + TREE_NODE_WIDTH / 2, y: target.y + TREE_NODE_HEIGHT / 2 };
+              const forward = sourceCenter.x <= targetCenter.x;
+              const startX = sourceCenter.x + (forward ? TREE_NODE_WIDTH / 2 : -TREE_NODE_WIDTH / 2);
+              const endX = targetCenter.x + (forward ? -TREE_NODE_WIDTH / 2 : TREE_NODE_WIDTH / 2);
+              const bend = Math.max(42, Math.abs(endX - startX) * 0.45);
+              const path = `M ${startX} ${sourceCenter.y} C ${startX + (forward ? bend : -bend)} ${sourceCenter.y}, ${endX - (forward ? bend : -bend)} ${targetCenter.y}, ${endX} ${targetCenter.y}`;
+              const connected = edge.source_anchor_id === selectedId || edge.target_anchor_id === selectedId;
+              return <g className={`anchor-tree-edge ${layout.treeEdgeIds.has(edge.relation_id) ? "tree" : "cross"} ${connected ? "connected" : ""}`} key={edge.relation_id}>
+                <path d={path} markerEnd="url(#anchor-tree-arrow)" />
+                {connected && view.scale >= 0.42 && <text x={(startX + endX) / 2} y={(sourceCenter.y + targetCenter.y) / 2 - 7}>{edge.relation_type.replaceAll("_", " ")}</text>}
+              </g>;
+            })}
+            {[...layout.points.values()].map((point) => {
+              const node = nodeById.get(point.id);
+              if (!node) return null;
+              const selectedNode = selectedId === point.id;
+              return <g
+                className={`anchor-tree-node ${node.kind} ${selectedNode ? "selected" : ""}`}
+                data-graph-node="true"
+                key={point.id}
+                role="button"
+                tabIndex={0}
+                aria-label={`${node.kind}: ${node.canonical}`}
+                aria-pressed={selectedNode}
+                transform={`translate(${point.x} ${point.y})`}
+                onPointerDown={(event) => event.stopPropagation()}
+                onClick={() => setSelectedId(point.id)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setSelectedId(point.id);
+                  }
+                }}
+              >
+                <rect width={TREE_NODE_WIDTH} height={TREE_NODE_HEIGHT} rx="9" />
+                <rect className="anchor-tree-node-accent" width="5" height={TREE_NODE_HEIGHT} rx="3" />
+                <text className="anchor-tree-node-kind" x="16" y="18">{node.kind.replaceAll("_", " ")}</text>
+                <text className="anchor-tree-node-title" x="16" y="39">{truncate(node.canonical, 25)}</text>
+                <text className="anchor-tree-node-meta" x="16" y="56">{node.anchor_id} · {Math.round(node.confidence * 100)}%</text>
+                {rootSet.has(point.id) && <g className="anchor-tree-root" transform={`translate(${TREE_NODE_WIDTH - 42} 9)`}><rect width="32" height="14" rx="7" /><text x="16" y="10">ROOT</text></g>}
+              </g>;
+            })}
+          </g>
+        </svg>
+      </div>
+      <aside className="anchor-tree-inspector">
+        {selected ? <>
+          <header><span className={`anchor-kind ${selected.kind}`}>{selected.kind.replaceAll("_", " ")}</span><strong>{Math.round(selected.confidence * 100)}%</strong></header>
+          <code>{selected.anchor_id}</code>
+          <h3>{selected.canonical}</h3>
+          <p className="anchor-tree-surface">“{selected.surface}”</p>
+          <p>{selected.description}</p>
+          <dl>
+            <div><dt>Semantic role</dt><dd>{selected.semantic_role || "Unspecified"}</dd></div>
+            <div><dt>Evidence</dt><dd>{selected.source} · {selected.explicit ? "explicit" : "inferred"}</dd></div>
+            <div><dt>Source span</dt><dd>{selected.start == null || selected.end == null ? "Implicit" : `${selected.start}–${selected.end}`}</dd></div>
+            <div><dt>Retrieval</dt><dd>{selected.retrieval_required ? "Required later" : "Control only"}</dd></div>
+          </dl>
+          {selected.expected_bson_types.length > 0 && <div className="anchor-tree-detail-group"><strong>Expected BSON types</strong><div className="anchor-chips small">{selected.expected_bson_types.map((value) => <span key={value}>{value}</span>)}</div></div>}
+          {selected.alternatives.length > 0 && <div className="anchor-tree-detail-group"><strong>Alternatives</strong><p>{selected.alternatives.join(" · ")}</p></div>}
+          <div className="anchor-tree-detail-group"><strong>Connected relations <span>{selectedRelations.length}</span></strong><div className="anchor-tree-relation-list">{selectedRelations.map((edge) => {
+            const outgoing = edge.source_anchor_id === selectedId;
+            const peerId = outgoing ? edge.target_anchor_id : edge.source_anchor_id;
+            const peer = nodeById.get(peerId);
+            return <button key={edge.relation_id} onClick={() => setSelectedId(peerId)}><span>{outgoing ? "→" : "←"} {edge.relation_type.replaceAll("_", " ")}</span><strong>{peer?.canonical ?? peerId}</strong></button>;
+          })}{!selectedRelations.length && <small>No connected relations.</small>}</div></div>
+        </> : <div className="anchor-tree-no-selection"><Network size={24} /><p>Select a node to inspect its grounding evidence.</p></div>}
+      </aside>
+    </section>
+    <div className="anchor-tree-legend"><span><i className="tree" />Tree relation</span><span><i className="cross" />Cross-link</span><span><i className="root" />Component root</span><strong>{layout.roots.length} {layout.roots.length === 1 ? "tree" : "trees"}</strong></div>
+    <Notes title="Graph warnings" values={warnings} danger />
+  </div>;
 }
 
 function SpecificationView({ values, notes }: { values: RetrievalSpecification[]; notes: string[] }) {
@@ -303,6 +578,10 @@ function Raw({ value }: { value: unknown }) {
 
 function formatDuration(value: number) {
   return value < 1000 ? `${Math.round(value)}ms` : `${(value / 1000).toFixed(1)}s`;
+}
+
+function truncate(value: string, limit: number) {
+  return value.length <= limit ? value : `${value.slice(0, limit - 1)}…`;
 }
 
 function relativeTime(value: string) {
