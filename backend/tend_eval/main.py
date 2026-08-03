@@ -30,7 +30,12 @@ def create_app(
     active_settings = settings or get_settings()
     store = RunStore(active_settings.sqlite_path)
     active_executor = executor or TendMethodExecutor(active_settings, store)
-    orchestrator = RunOrchestrator(store, active_executor)
+    orchestrator = RunOrchestrator(
+        store,
+        active_executor,
+        retry_initial_delay=active_settings.retry_initial_delay_seconds,
+        retry_max_delay=active_settings.retry_max_delay_seconds,
+    )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):

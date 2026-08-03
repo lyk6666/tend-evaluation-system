@@ -26,10 +26,14 @@ class RunOrchestrator:
         executor: WorkExecutor | Callable[[WorkItemView], Awaitable[dict[str, Any]]] = unavailable_executor,
         *,
         poll_interval: float = 0.25,
+        retry_initial_delay: float = 2.0,
+        retry_max_delay: float = 60.0,
     ):
         self.store = store
         self.executor = executor
         self.poll_interval = poll_interval
+        self.retry_initial_delay = retry_initial_delay
+        self.retry_max_delay = retry_max_delay
         self._manager: asyncio.Task[None] | None = None
         self._run_tasks: dict[str, asyncio.Task[None]] = {}
         self._stopping = False
@@ -131,14 +135,15 @@ class RunOrchestrator:
             raise
         finally:
             run = self.store.get_run(run_id)
+            if run and run.status == RunStatus.COMPLETED:
+                finalize_run = getattr(self.executor, "finalize_run", None)
+                if callable(finalize_run):
+                    await finalize_run(run_id)
             if run and run.status in {
                 RunStatus.COMPLETED,
                 RunStatus.FAILED,
                 RunStatus.CANCELLED,
             }:
-                finalize_run = getattr(self.executor, "finalize_run", None)
-                if callable(finalize_run):
-                    await finalize_run(run_id)
                 close_run = getattr(self.executor, "close_run", None)
                 if callable(close_run):
                     await close_run(run_id)
@@ -153,7 +158,15 @@ class RunOrchestrator:
             else:
                 self.store.requeue_work(item.id)
             raise
-        except Exception as error:  # noqa: BLE001 - one task failure must not stop the suite
-            self.store.finish_work(item.id, error=f"{type(error).__name__}: {error}")
+        except Exception as error:  # noqa: BLE001 - regenerate until the acceptance gate passes
+            self.store.retry_work(
+                item.id,
+                error=f"{type(error).__name__}: {error}",
+                delay_seconds=self._retry_delay(item.attempt),
+            )
         else:
             self.store.finish_work(item.id, result=result)
+
+    def _retry_delay(self, attempt: int) -> float:
+        exponent = max(0, min(attempt - 1, 12))
+        return min(self.retry_max_delay, self.retry_initial_delay * (2**exponent))

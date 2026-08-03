@@ -118,8 +118,8 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 
 .run-status { display: inline-flex; gap: 6px; align-items: center; font-family: "Cascadia Mono", Consolas, monospace; font-size: 9px; text-transform: uppercase; letter-spacing: .05em; padding: 5px 7px; border-radius: 999px; background: #e9ece7; color: #5d6963; white-space: nowrap; }
 .run-status i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-.status-running, .status-pausing, .status-cancelling { color: #176b91; background: #e4f2f8; }
-.status-running i { animation: pulse 1.2s infinite; }
+.status-running, .status-pausing, .status-cancelling, .status-retrying { color: #176b91; background: #e4f2f8; }
+.status-running i, .status-retrying i { animation: pulse 1.2s infinite; }
 .status-completed, .status-succeeded { color: var(--green); background: #e2f4e8; }
 .status-failed, .status-cancelled { color: #a3433c; background: #f7e7e4; }
 .status-paused { color: #8b641f; background: #f7edda; }
@@ -134,11 +134,12 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .run-actions { display: flex; gap: 6px; }
 .run-actions button { border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 7px; padding: 7px 9px; display: flex; gap: 5px; align-items: center; font-size: 10px; font-weight: 700; }
 .run-actions button.danger { color: #a3433c; }
-.counter-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+.counter-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
 .counter-grid > span { background: #f1f3ee; border-radius: 7px; padding: 8px; font-size: 9px; color: var(--muted); display: grid; grid-template-columns: 7px 1fr auto; gap: 5px; align-items: center; }
 .counter-grid strong { color: var(--ink); }
 .dot { width: 6px; height: 6px; border-radius: 50%; background: #aab2ad; }
-.dot.running { background: #3c97c0; }.dot.success { background: #35a368; }.dot.failure { background: #bd5750; }
+.dot.running { background: #3c97c0; }.dot.retrying { background: #d28b35; }.dot.success { background: #35a368; }.dot.failure { background: #bd5750; }
+.retry-notice { margin: 9px 0 0; color: #8b641f; font-size: 10px; }
 .work-feed { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
 .feed-head { display: flex; justify-content: space-between; color: var(--muted); font-size: 9px; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 5px; }
 .work-row { display: grid; grid-template-columns: 16px 1fr auto; gap: 8px; align-items: center; padding: 7px 4px; border-bottom: 1px solid #edf0eb; }

@@ -4,7 +4,7 @@ import json
 import sqlite3
 import uuid
 from contextlib import contextmanager
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +23,10 @@ from .contracts import (
 
 def utc_now() -> str:
     return datetime.now(UTC).isoformat().replace("+00:00", "Z")
+
+
+def utc_after(seconds: float) -> str:
+    return (datetime.now(UTC) + timedelta(seconds=seconds)).isoformat().replace("+00:00", "Z")
 
 
 class RunStore:
@@ -79,6 +83,7 @@ class RunStore:
                     payload_json TEXT NOT NULL,
                     status TEXT NOT NULL,
                     attempt INTEGER NOT NULL DEFAULT 0,
+                    retry_at TEXT,
                     worker_id TEXT,
                     result_json TEXT,
                     error TEXT,
@@ -108,6 +113,16 @@ class RunStore:
                 );
                 """
             )
+            columns = {
+                str(row["name"])
+                for row in connection.execute("PRAGMA table_info(work_items)").fetchall()
+            }
+            if "retry_at" not in columns:
+                connection.execute("ALTER TABLE work_items ADD COLUMN retry_at TEXT")
+            connection.execute(
+                "CREATE INDEX IF NOT EXISTS idx_work_run_retry "
+                "ON work_items(run_id, status, retry_at, ordinal)"
+            )
 
     def recover_incomplete(self) -> None:
         """Return interrupted work to a safe task boundary after process restart."""
@@ -115,7 +130,7 @@ class RunStore:
         with self.connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
             connection.execute(
-                "UPDATE work_items SET status = ?, worker_id = NULL, started_at = NULL "
+                "UPDATE work_items SET status = ?, worker_id = NULL, started_at = NULL, retry_at = NULL "
                 "WHERE status = ?",
                 (WorkStatus.PENDING, WorkStatus.RUNNING),
             )
@@ -234,15 +249,13 @@ class RunStore:
         with self.connect() as connection:
             rows = connection.execute(
                 "SELECT id FROM runs WHERE status IN (?, ?, ?) "
-                "OR (status IN (?, ?, ?) AND id IN "
+                "OR (status = ? AND id IN "
                 "(SELECT run_id FROM evaluations WHERE status = ?)) ORDER BY created_at",
                 (
                     RunStatus.QUEUED,
                     RunStatus.RUNNING,
                     RunStatus.CANCELLING,
                     RunStatus.COMPLETED,
-                    RunStatus.FAILED,
-                    RunStatus.CANCELLED,
                     EvaluationStatus.PENDING,
                 ),
             ).fetchall()
@@ -314,8 +327,7 @@ class RunStore:
             ).fetchone()
             if (
                 row
-                and row["run_status"]
-                in {RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED}
+                and row["run_status"] == RunStatus.COMPLETED
                 and row["evaluation_status"] is not None
                 and row["evaluation_status"] != EvaluationStatus.RUNNING
             ):
@@ -326,11 +338,7 @@ class RunStore:
                 )
                 self._add_event(connection, run_id, "evaluation_requested", {}, now)
             connection.commit()
-        if not row or row["run_status"] not in {
-            RunStatus.COMPLETED,
-            RunStatus.FAILED,
-            RunStatus.CANCELLED,
-        }:
+        if not row or row["run_status"] != RunStatus.COMPLETED:
             return None
         return self.get_evaluation(run_id)
 
@@ -356,16 +364,17 @@ class RunStore:
                 connection.rollback()
                 return None
             row = connection.execute(
-                "SELECT * FROM work_items WHERE run_id = ? AND status = ? "
+                "SELECT * FROM work_items WHERE run_id = ? AND (status = ? "
+                "OR (status = ? AND (retry_at IS NULL OR retry_at <= ?))) "
                 "ORDER BY ordinal LIMIT 1",
-                (run_id, WorkStatus.PENDING),
+                (run_id, WorkStatus.PENDING, WorkStatus.RETRYING, now),
             ).fetchone()
             if row is None:
                 connection.rollback()
                 return None
             connection.execute(
                 "UPDATE work_items SET status = ?, attempt = attempt + 1, worker_id = ?, "
-                "started_at = ?, finished_at = NULL, error = NULL WHERE id = ?",
+                "started_at = ?, finished_at = NULL, retry_at = NULL, error = NULL WHERE id = ?",
                 (WorkStatus.RUNNING, worker_id, now, row["id"]),
             )
             self._add_event(
@@ -439,7 +448,7 @@ class RunStore:
             ).fetchone()
             if row is not None:
                 connection.execute(
-                    "UPDATE work_items SET status = ?, worker_id = NULL, started_at = NULL "
+                    "UPDATE work_items SET status = ?, worker_id = NULL, started_at = NULL, retry_at = NULL "
                     "WHERE id = ?",
                     (WorkStatus.PENDING, work_item_id),
                 )
@@ -449,6 +458,42 @@ class RunStore:
                     "work_requeued",
                     {"work_item_id": work_item_id},
                     now,
+                )
+            connection.commit()
+
+    def retry_work(self, work_item_id: int, *, error: str, delay_seconds: float) -> None:
+        """Schedule a fresh generation attempt without accepting a failed payload."""
+        now = utc_now()
+        retry_at = utc_after(delay_seconds)
+        with self.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute(
+                "SELECT run_id, method_id, db_id, attempt FROM work_items "
+                "WHERE id = ? AND status = ?",
+                (work_item_id, WorkStatus.RUNNING),
+            ).fetchone()
+            if row is not None:
+                connection.execute(
+                    "UPDATE work_items SET status = ?, worker_id = NULL, result_json = NULL, "
+                    "error = ?, retry_at = ?, started_at = NULL, finished_at = NULL WHERE id = ?",
+                    (WorkStatus.RETRYING, error, retry_at, work_item_id),
+                )
+                self._add_event(
+                    connection,
+                    str(row["run_id"]),
+                    "work_retry_scheduled",
+                    {
+                        "work_item_id": work_item_id,
+                        "method_id": row["method_id"],
+                        "db_id": row["db_id"],
+                        "attempt": int(row["attempt"]),
+                        "retry_at": retry_at,
+                        "error": error,
+                    },
+                    now,
+                )
+                connection.execute(
+                    "UPDATE runs SET updated_at = ? WHERE id = ?", (now, row["run_id"])
                 )
             connection.commit()
 
@@ -522,8 +567,15 @@ class RunStore:
     def _cancel_remaining(self, connection: sqlite3.Connection, run_id: str, now: str) -> None:
         connection.execute(
             "UPDATE work_items SET status = ?, finished_at = ?, worker_id = NULL "
-            "WHERE run_id = ? AND status IN (?, ?)",
-            (WorkStatus.CANCELLED, now, run_id, WorkStatus.PENDING, WorkStatus.RUNNING),
+            "WHERE run_id = ? AND status IN (?, ?, ?)",
+            (
+                WorkStatus.CANCELLED,
+                now,
+                run_id,
+                WorkStatus.PENDING,
+                WorkStatus.RETRYING,
+                WorkStatus.RUNNING,
+            ),
         )
         connection.execute(
             "UPDATE runs SET status = ?, updated_at = ?, finished_at = ? WHERE id = ?",
@@ -536,7 +588,11 @@ class RunStore:
         with self.connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
             counts = self._status_counts(connection, run_id)
-            unfinished = counts[WorkStatus.PENDING] + counts[WorkStatus.RUNNING]
+            unfinished = (
+                counts[WorkStatus.PENDING]
+                + counts[WorkStatus.RETRYING]
+                + counts[WorkStatus.RUNNING]
+            )
             run = connection.execute("SELECT status FROM runs WHERE id = ?", (run_id,)).fetchone()
             if run and unfinished == 0 and run["status"] == RunStatus.RUNNING:
                 final_status = RunStatus.FAILED if counts[WorkStatus.FAILED] else RunStatus.COMPLETED
@@ -564,7 +620,8 @@ class RunStore:
         recent: bool = False,
     ) -> list[WorkItemView]:
         order = (
-            "CASE WHEN status = 'pending' THEN 1 ELSE 0 END, "
+            "CASE WHEN status = 'running' THEN 1 WHEN status = 'retrying' THEN 2 "
+            "WHEN status = 'pending' THEN 3 ELSE 0 END, "
             "COALESCE(finished_at, started_at, created_at) DESC, ordinal DESC"
             if recent
             else "ordinal"
@@ -642,6 +699,7 @@ class RunStore:
             execute_custom_query=bool(row["execute_custom_query"]),
             total_items=total,
             pending_items=counts[WorkStatus.PENDING],
+            retrying_items=counts[WorkStatus.RETRYING],
             running_items=counts[WorkStatus.RUNNING],
             succeeded_items=counts[WorkStatus.SUCCEEDED],
             failed_items=counts[WorkStatus.FAILED],
@@ -672,6 +730,7 @@ class RunStore:
             payload=json.loads(row["payload_json"]),
             status=row["status"],
             attempt=row["attempt"],
+            retry_at=row["retry_at"],
             started_at=row["started_at"],
             finished_at=row["finished_at"],
             error=row["error"],

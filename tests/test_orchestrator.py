@@ -127,3 +127,47 @@ async def test_orchestrator_pause_resume_and_cancel_are_task_safe(tmp_path: Path
         assert current.succeeded_items + current.cancelled_items == 4
     finally:
         await orchestrator.stop()
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_regenerates_rejected_attempt_until_accepted(tmp_path: Path) -> None:
+    store = RunStore(tmp_path / "runs.sqlite3")
+    store.initialize()
+
+    async def executor(item):
+        if item.attempt == 1:
+            raise RuntimeError("empty MQL")
+        return {"item": item.id, "MQL": "db.collection.aggregate([])"}
+
+    request = RunCreate(
+        mode=RunMode.CUSTOM_QUERY,
+        method_ids=["direct"],
+        database_id="financial",
+        question="test",
+        concurrency=1,
+    )
+    run = store.create_run(
+        request, _items(1), model="gpt-5.6-luna", reasoning_effort="medium", concurrency=1
+    )
+    orchestrator = RunOrchestrator(
+        store,
+        executor,
+        poll_interval=0.005,
+        retry_initial_delay=0.01,
+        retry_max_delay=0.01,
+    )
+    await orchestrator.start()
+    try:
+        for _ in range(400):
+            current = store.get_run(run.id)
+            if current and current.status == RunStatus.COMPLETED:
+                break
+            await asyncio.sleep(0.01)
+        current = store.get_run(run.id)
+        assert current and current.status == RunStatus.COMPLETED
+        assert current.succeeded_items == 1
+        item = store.list_work_items(run.id)[0]
+        assert item.attempt == 2
+        assert item.status == "succeeded"
+    finally:
+        await orchestrator.stop()

@@ -48,6 +48,16 @@ def test_prediction_normalizes_system_identity_and_failures() -> None:
     assert "MQL" not in failed
 
 
+def test_only_nonempty_successful_mql_is_an_accepted_prediction() -> None:
+    accepted = make_item()
+    empty = make_item(result={"result_type": "baseline_prediction", "MQL": ""})
+    failed = make_item(result={"result_type": "baseline_failure", "MQL": "db.c.aggregate([])"})
+
+    assert OfficialEvaluationService._is_accepted_prediction(accepted)
+    assert not OfficialEvaluationService._is_accepted_prediction(empty)
+    assert not OfficialEvaluationService._is_accepted_prediction(failed)
+
+
 def test_evaluation_dataset_is_scoped_and_links_official_release_files(tmp_path: Path) -> None:
     release = tmp_path / "release"
     (release / "data").mkdir(parents=True)

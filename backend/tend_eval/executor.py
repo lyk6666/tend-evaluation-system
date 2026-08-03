@@ -15,6 +15,10 @@ from .evaluation import OfficialEvaluationService
 from .store import RunStore, utc_now
 
 
+class GeneratedMQLRejected(RuntimeError):
+    """The model returned a payload that cannot be accepted as an executable query."""
+
+
 class TendMethodExecutor:
     """Thin adapter over the installed official TEND runtime and method implementations."""
 
@@ -68,12 +72,17 @@ class TendMethodExecutor:
                 "completed_at": utc_now(),
             }
         )
+        await asyncio.to_thread(self._validate_generated_mql, runtime, item.db_id, payload)
         if run.mode == "custom_query" and run.execute_custom_query and payload.get("MQL"):
             try:
                 payload["execution_preview"] = await asyncio.to_thread(
-                    self._execute_preview, runtime, item.db_id, str(payload["MQL"])
+                    self._execute_preview,
+                    runtime,
+                    item.db_id,
+                    str(payload["MQL"]),
+                    self.settings.generation_mongo_max_time_ms,
                 )
-            except Exception as error:  # noqa: BLE001 - generation result remains inspectable
+            except Exception as error:  # noqa: BLE001 - a validated query remains inspectable
                 payload["execution_preview"] = {
                     "ok": False,
                     "error": f"{type(error).__name__}: {error}",
@@ -212,8 +221,45 @@ class TendMethodExecutor:
             return {}
         return json.loads(path.read_text(encoding="utf-8"))
 
+    def _validate_generated_mql(self, runtime: Any, db_id: str, payload: dict[str, Any]) -> None:
+        """Accept only a non-empty, parseable MQL statement that MongoDB can execute.
+
+        An empty result set is valid: whether it is correct is the evaluator's job.  A missing
+        statement, solver failure payload, parser violation, or MongoDB execution error is not
+        accepted and causes the scheduler to regenerate this work item.
+        """
+        result_type = str(payload.get("result_type") or "")
+        error_code = payload.get("error_code")
+        mql = payload.get("MQL")
+        if result_type.endswith("_failure") or error_code:
+            detail = str(payload.get("message") or error_code or result_type)
+            raise GeneratedMQLRejected(f"solver did not produce an accepted MQL: {detail}")
+        if not isinstance(mql, str) or not mql.strip():
+            raise GeneratedMQLRejected("solver returned an empty MQL")
+
+        from tend.execution.mongo import assert_no_disabled, parse_pipeline
+
+        try:
+            assert_no_disabled(mql)
+            collection, pipeline = parse_pipeline(mql)
+            cursor = runtime.mongo.raw_database(db_id)[collection].aggregate(
+                pipeline, maxTimeMS=self.settings.generation_mongo_max_time_ms
+            )
+            try:
+                next(cursor, None)
+            finally:
+                cursor.close()
+        except GeneratedMQLRejected:
+            raise
+        except Exception as error:  # noqa: BLE001 - preserve the exact regeneration reason
+            raise GeneratedMQLRejected(
+                f"generated MQL failed validation/execution: {type(error).__name__}: {error}"
+            ) from error
+
     @staticmethod
-    def _execute_preview(runtime: Any, db_id: str, mql: str, limit: int = 100) -> dict[str, Any]:
+    def _execute_preview(
+        runtime: Any, db_id: str, mql: str, max_time_ms: int, limit: int = 100
+    ) -> dict[str, Any]:
         from tend.execution.mongo import assert_no_disabled, parse_pipeline
 
         assert_no_disabled(mql)
@@ -221,7 +267,7 @@ class TendMethodExecutor:
         bounded_pipeline = [*pipeline, {"$limit": limit}]
         raw = list(
             runtime.mongo.raw_database(db_id)[collection].aggregate(
-                bounded_pipeline, maxTimeMS=20_000
+                bounded_pipeline, maxTimeMS=max_time_ms
             )
         )
         rows = json.loads(json_util.dumps(raw, default=str))

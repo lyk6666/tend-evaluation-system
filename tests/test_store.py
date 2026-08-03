@@ -75,6 +75,28 @@ def test_pause_resume_cancel_and_recovery(tmp_path: Path) -> None:
     assert final.cancelled_items == 3
 
 
+def test_rejected_work_is_durably_retried_and_cannot_complete_run(tmp_path: Path) -> None:
+    store = RunStore(tmp_path / "runs.sqlite3")
+    store.initialize()
+    run = store.create_run(
+        _request(), _items(1), model="gpt-5.6-luna", reasoning_effort="medium", concurrency=1
+    )
+    store.mark_running(run.id)
+    item = store.claim_next(run.id, "worker-test")
+    assert item is not None
+    store.retry_work(item.id, error="empty MQL", delay_seconds=60)
+
+    retrying = store.get_run(run.id)
+    assert retrying and retrying.retrying_items == 1
+    assert retrying.succeeded_items == 0
+    assert store.finalize_if_complete(run.id).status == RunStatus.RUNNING
+    saved = store.list_work_items(run.id)[0]
+    assert saved.status == WorkStatus.RETRYING
+    assert saved.result is None
+    assert saved.error == "empty MQL"
+    assert saved.retry_at is not None
+
+
 def test_benchmark_evaluation_lifecycle(tmp_path: Path) -> None:
     store = RunStore(tmp_path / "runs.sqlite3")
     store.initialize()

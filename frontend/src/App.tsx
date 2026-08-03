@@ -111,6 +111,7 @@ export default function App() {
   useEffect(() => {
     if (!activeRun) return;
     const evaluationDone = activeRun.mode === "custom_query"
+      || activeRun.status !== "completed"
       || (results?.run_id === activeRun.id && ["completed", "failed"].includes(results.status));
     if (terminalStatuses.has(activeRun.status) && evaluationDone) return;
     const interval = window.setInterval(() => {
@@ -356,6 +357,18 @@ function ResultsPanel({ run, results, onEvaluate }: {
     );
   }
 
+  if (run.status !== "completed") {
+    return (
+      <section className="panel results-panel" id="results">
+        <div className="panel-head"><div><span className="step">05</span><h2>Benchmark results</h2></div><RunStatusPill status={run.status} /></div>
+        <div className="evaluation-wait">
+          <AlertTriangle size={24} />
+          <div><strong>Scoring is withheld until every MQL is accepted</strong><p>Rejected generations are regenerated automatically. Cancelled or failed runs are never evaluated as partial benchmarks.</p></div>
+        </div>
+      </section>
+    );
+  }
+
   if (!results || results.status !== "completed" || !report) {
     return (
       <section className="panel results-panel" id="results">
@@ -460,7 +473,8 @@ function Monitor({ run, items, busy, onControl }: {
       <div className="monitor-body">
         <div className="progress-head"><div><strong>{Math.round(run.progress * 100)}%</strong><span>{finished.toLocaleString()} / {run.total_items.toLocaleString()} tasks</span></div><div className="run-actions">{run.status === "running" && <button disabled={busy} onClick={() => onControl("pause")}><Pause size={14} /> Pause</button>}{run.status === "paused" && <button disabled={busy} onClick={() => onControl("resume")}><Play size={14} /> Resume</button>}{!terminalStatuses.has(run.status) && <button className="danger" disabled={busy} onClick={() => onControl("cancel")}><Square size={13} /> Cancel</button>}</div></div>
         <div className="progress-track"><div style={{ width: `${run.progress * 100}%` }} /></div>
-        <div className="counter-grid"><span><i className="dot running" />Running<strong>{run.running_items}</strong></span><span><i className="dot pending" />Pending<strong>{run.pending_items}</strong></span><span><i className="dot success" />Succeeded<strong>{run.succeeded_items}</strong></span><span><i className="dot failure" />Failed<strong>{run.failed_items}</strong></span></div>
+        <div className="counter-grid"><span><i className="dot running" />Running<strong>{run.running_items}</strong></span><span><i className="dot retrying" />Retrying<strong>{run.retrying_items}</strong></span><span><i className="dot pending" />Pending<strong>{run.pending_items}</strong></span><span><i className="dot success" />Accepted<strong>{run.succeeded_items}</strong></span><span><i className="dot failure" />Failed<strong>{run.failed_items}</strong></span></div>
+        {run.retrying_items > 0 && <p className="retry-notice">Rejected generations are being regenerated automatically. Only accepted MQL has passed parsing and MongoDB execution.</p>}
         <div className="work-feed"><div className="feed-head"><span>Recent work items</span><small>{run.model} · {run.reasoning_effort} · C{run.concurrency}</small></div>{items.slice(0, 6).map((item) => <div className="work-row" key={item.id}>{item.status === "succeeded" ? <CheckCircle2 size={14} /> : item.status === "failed" ? <XCircle size={14} /> : <Activity size={14} />}<span><strong>{item.method_id}</strong><small>{item.db_id} · {item.track} · {item.record_id ?? "custom"}</small></span><RunStatusPill status={item.status} /></div>)}</div>
         {run.mode === "custom_query" && <CustomQueryOutputs items={items} />}
       </div>

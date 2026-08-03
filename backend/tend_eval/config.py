@@ -31,6 +31,15 @@ class Settings(BaseSettings):
     )
     llm_stub: bool = Field(default=False, alias="TEND_EVAL_LLM_STUB")
     provider_max_retries: int = Field(default=5, ge=-1, alias="TEND_EVAL_PROVIDER_MAX_RETRIES")
+    retry_initial_delay_seconds: float = Field(
+        default=2.0, ge=0.1, le=300, alias="TEND_EVAL_RETRY_INITIAL_DELAY_SECONDS"
+    )
+    retry_max_delay_seconds: float = Field(
+        default=60.0, ge=1, le=3600, alias="TEND_EVAL_RETRY_MAX_DELAY_SECONDS"
+    )
+    generation_mongo_max_time_ms: int = Field(
+        default=30_000, ge=1_000, le=900_000, alias="TEND_EVAL_GENERATION_MONGO_MAX_TIME_MS"
+    )
 
     mongodb_uri: str = Field(
         default="mongodb://127.0.0.1:27017", alias="MONGODB_URI"

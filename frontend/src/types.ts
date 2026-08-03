@@ -79,6 +79,7 @@ export type RunView = {
   execute_custom_query: boolean;
   total_items: number;
   pending_items: number;
+  retrying_items: number;
   running_items: number;
   succeeded_items: number;
   failed_items: number;
@@ -101,8 +102,9 @@ export type WorkItem = {
   record_id: number | string | null;
   question: string;
   payload: Record<string, unknown>;
-  status: "pending" | "running" | "succeeded" | "failed" | "cancelled";
+  status: "pending" | "retrying" | "running" | "succeeded" | "failed" | "cancelled";
   attempt: number;
+  retry_at: string | null;
   started_at: string | null;
   finished_at: string | null;
   error: string | null;

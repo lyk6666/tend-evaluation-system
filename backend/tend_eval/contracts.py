@@ -24,6 +24,7 @@ class RunStatus(StrEnum):
 
 class WorkStatus(StrEnum):
     PENDING = "pending"
+    RETRYING = "retrying"
     RUNNING = "running"
     SUCCEEDED = "succeeded"
     FAILED = "failed"
@@ -78,6 +79,7 @@ class WorkItemView(BaseModel):
     payload: dict[str, Any]
     status: WorkStatus
     attempt: int
+    retry_at: str | None = None
     started_at: str | None = None
     finished_at: str | None = None
     error: str | None = None
@@ -98,6 +100,7 @@ class RunView(BaseModel):
     execute_custom_query: bool
     total_items: int
     pending_items: int
+    retrying_items: int
     running_items: int
     succeeded_items: int
     failed_items: int

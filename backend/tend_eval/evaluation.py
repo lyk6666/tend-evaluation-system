@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from .config import Settings
-from .contracts import EvaluationStatus, WorkItemView, WorkStatus
+from .contracts import EvaluationStatus, RunStatus, WorkItemView, WorkStatus
 from .store import RunStore
 
 
@@ -79,6 +79,9 @@ class OfficialEvaluationService:
         self.store = store
 
     async def finalize_run(self, run_id: str, runtime: Any) -> None:
+        run = self.store.get_run(run_id)
+        if run is None or run.status != RunStatus.COMPLETED:
+            return
         state = self.store.get_evaluation(run_id)
         if state is None or state.status != EvaluationStatus.PENDING:
             return
@@ -107,6 +110,12 @@ class OfficialEvaluationService:
         benchmark_items = [item for item in items if item.record_id is not None]
         if not benchmark_items:
             raise RuntimeError("benchmark run contains no evaluable work items")
+        rejected = [item for item in benchmark_items if not self._is_accepted_prediction(item)]
+        if rejected:
+            raise RuntimeError(
+                "benchmark contains unaccepted generated outputs; regeneration must finish before "
+                f"evaluation (examples: {[item.id for item in rejected[:5]]})"
+            )
 
         run_root = self.settings.runtime_dir / "runs" / run_id / "evaluation"
         dataset_dir = self._write_evaluation_dataset(run_root, benchmark_items, run_id)
@@ -195,8 +204,23 @@ class OfficialEvaluationService:
         path.parent.mkdir(parents=True, exist_ok=True)
         with path.open("w", encoding="utf-8") as handle:
             for item in sorted(items, key=lambda value: value.ordinal):
+                if not OfficialEvaluationService._is_accepted_prediction(item):
+                    raise RuntimeError(f"work item {item.id} is not an accepted prediction")
                 payload = OfficialEvaluationService._prediction_for(item)
                 handle.write(json.dumps(payload, ensure_ascii=False, default=str) + "\n")
+
+    @staticmethod
+    def _is_accepted_prediction(item: WorkItemView) -> bool:
+        payload = item.result or {}
+        mql = payload.get("MQL")
+        result_type = str(payload.get("result_type") or "")
+        return (
+            item.status == WorkStatus.SUCCEEDED
+            and isinstance(mql, str)
+            and bool(mql.strip())
+            and not payload.get("error_code")
+            and not result_type.endswith("_failure")
+        )
 
     @staticmethod
     def _prediction_for(item: WorkItemView) -> dict[str, Any]:
