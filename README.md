@@ -5,13 +5,16 @@ TEND Evaluation System is a local-first research dashboard for running the offic
 monitoring long benchmark runs, and inspecting EXC, EXF1, claim-axis, and outcome results.
 
 The top-bar **New Methods** workspace contains a schema-retrieval preparation prototype.
-It runs independently from benchmark execution and persists seven inspectable artifacts:
+It runs independently from benchmark execution and persists six inspectable artifacts:
 normalization, retrieval-target extraction, supporting-field inference, restriction
-binding, the retrieval graph, future retrieval specifications, and the final
+binding, the retrieval graph, and the final
 `RetrievalBundle`. Only entities, fields, and requested derived concepts become graph
 nodes. Temporal values, constants, comparisons, aggregation, and grouping are attached as
 retrieval restrictions; sorting and tie handling are deferred to later planning. This
 workflow deliberately stops before schema retrieval, MongoDB access, and query planning.
+The final `RetrievalBundle` is deliberately minimal: it contains only the original
+`question`, retrieval `targets`, structural `relations`, and directly useful
+`value_constraints`. Rich extraction evidence remains available in the intermediate stages.
 
 The system keeps the official TEND implementation as an external checkout. It does not
 vendor or republish upstream source code. The adapter records the upstream commit for every

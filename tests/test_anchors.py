@@ -26,7 +26,7 @@ def settings_for(tmp_path: Path) -> Settings:
     )
 
 
-def test_retrieval_pipeline_persists_all_seven_stages(tmp_path: Path) -> None:
+def test_retrieval_pipeline_persists_all_six_stages(tmp_path: Path) -> None:
     settings = settings_for(tmp_path)
     store = AnchorRunStore(settings.sqlite_path)
     store.initialize()
@@ -40,7 +40,7 @@ def test_retrieval_pipeline_persists_all_seven_stages(tmp_path: Path) -> None:
 
     assert finished is not None
     assert finished.status == AnchorRunStatus.COMPLETED
-    assert len(finished.stages) == 7
+    assert len(finished.stages) == 6
     assert all(stage.status == "completed" for stage in finished.stages)
     assert finished.normalized_question is not None
     assert {cue.canonical for cue in finished.normalized_question.cues} >= {
@@ -57,44 +57,46 @@ def test_retrieval_pipeline_persists_all_seven_stages(tmp_path: Path) -> None:
         "support_inference",
         "restriction_binding",
         "retrieval_graph",
-        "retrieval_specifications",
         "retrieval_bundle",
     ]
     assert finished.retrieval_bundle is not None
     assert any(
         item.kind == AnchorKind.ENTITY and item.canonical == "constructor"
-        for item in finished.retrieval_bundle.anchors
+        for item in finished.retrieval_bundle.targets
     )
-    assert "for" not in {item.canonical for item in finished.retrieval_bundle.anchors}
-    assert {item.kind for item in finished.retrieval_bundle.anchors} <= {
+    assert "for" not in {item.canonical for item in finished.retrieval_bundle.targets}
+    assert {item.kind for item in finished.retrieval_bundle.targets} <= {
         AnchorKind.ENTITY,
         AnchorKind.FIELD,
         AnchorKind.DERIVED_CONCEPT,
     }
     assert any(
-        item.canonical == "finishing position" and item.retrieval_role == "supporting"
-        for item in finished.retrieval_bundle.anchors
+        item.canonical == "finishing position" and item.role == "supporting"
+        for item in finished.retrieval_bundle.targets
     )
+    assert finished.restriction_binding is not None
     assert any(
         item.kind == "temporal" and item.normalized_value == 2021
-        for item in finished.retrieval_bundle.restrictions
+        for item in finished.restriction_binding.restrictions
     )
-    by_id = {item.anchor_id: item for item in finished.retrieval_bundle.anchors}
+    by_id = {item.id: item for item in finished.retrieval_bundle.targets}
     ranking = next(
         item
-        for item in finished.retrieval_bundle.restrictions
+        for item in finished.restriction_binding.restrictions
         if item.operator == "ARGMAX"
     )
     assert {by_id[item].canonical for item in ranking.anchor_ids} == {"points"}
-    assert {item.kind for item in finished.retrieval_bundle.deferred_plan_cues} >= {
+    assert {item.kind for item in finished.restriction_binding.deferred_plan_cues} >= {
         "sorting",
         "tie_policy",
     }
-    assert any(
-        item.search_kind == "field_path"
-        for item in finished.retrieval_bundle.retrieval_specifications
-    )
-    assert finished.retrieval_bundle.ready_for_retrieval
+    assert finished.retrieval_bundle.model_dump().keys() == {
+        "question",
+        "targets",
+        "relations",
+        "value_constraints",
+    }
+    assert finished.retrieval_bundle.value_constraints[0].value == 2021
 
 
 def test_anchor_api_is_available_without_dataset_or_mongodb(tmp_path: Path) -> None:
@@ -109,7 +111,12 @@ def test_anchor_api_is_available_without_dataset_or_mongodb(tmp_path: Path) -> N
         fetched = client.get(f"/api/new-methods/anchor-runs/{run_id}")
         assert fetched.status_code == 200
         assert fetched.json()["status"] == "completed"
-        assert fetched.json()["retrieval_bundle"]["retrieval_specifications"]
+        assert set(fetched.json()["retrieval_bundle"]) == {
+            "question",
+            "targets",
+            "relations",
+            "value_constraints",
+        }
         deleted = client.delete(f"/api/new-methods/anchor-runs/{run_id}")
         assert deleted.status_code == 204
 

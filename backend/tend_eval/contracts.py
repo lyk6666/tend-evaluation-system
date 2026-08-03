@@ -220,37 +220,41 @@ class AnchorGraph(BaseModel):
     validation_warnings: list[str] = Field(default_factory=list)
 
 
-class RetrievalSpecification(BaseModel):
-    specification_id: str
-    anchor_ids: list[str] = Field(default_factory=list)
-    restriction_ids: list[str] = Field(default_factory=list)
-    search_kind: Literal[
-        "entity_or_group", "field_path", "derived_support", "relationship"
+class RetrievalBundleTarget(BaseModel):
+    id: str
+    kind: AnchorKind
+    role: Literal["primary", "supporting"]
+    mention: str
+    canonical: str
+    aliases: list[str] = Field(default_factory=list)
+    parent_hints: list[str] = Field(default_factory=list)
+    expected_types: list[str] = Field(default_factory=list)
+
+
+class RetrievalBundleRelation(BaseModel):
+    source: str
+    target: str
+    type: Literal[
+        "belongs_to",
+        "requires_connection",
+        "scoped_with",
+        "supports",
+        "derived_from",
     ]
-    query_terms: list[str] = Field(default_factory=list)
-    semantic_query: str
-    expected_bson_types: list[str] = Field(default_factory=list)
-    structural_constraints: list[str] = Field(default_factory=list)
-    required: bool = True
-    rationale: str = ""
 
 
-class RetrievalSpecificationSet(BaseModel):
-    specifications: list[RetrievalSpecification] = Field(default_factory=list)
-    notes: list[str] = Field(default_factory=list)
+class RetrievalValueConstraint(BaseModel):
+    kind: Literal["temporal", "value", "comparison"]
+    target_ids: list[str] = Field(default_factory=list)
+    operator: str | None = None
+    value: str | int | float | bool | None = None
 
 
-class AnchorBundle(BaseModel):
+class RetrievalBundle(BaseModel):
     question: str
-    normalized_question: NormalizedQuestion
-    anchors: list[TypedSemanticAnchor] = Field(default_factory=list)
-    relations: list[AnchorRelation] = Field(default_factory=list)
-    restrictions: list[RetrievalRestriction] = Field(default_factory=list)
-    deferred_plan_cues: list[DeferredPlanCue] = Field(default_factory=list)
-    retrieval_specifications: list[RetrievalSpecification] = Field(default_factory=list)
-    coverage_score: float = Field(default=0, ge=0, le=1)
-    ready_for_retrieval: bool = False
-    validation_warnings: list[str] = Field(default_factory=list)
+    targets: list[RetrievalBundleTarget] = Field(default_factory=list)
+    relations: list[RetrievalBundleRelation] = Field(default_factory=list)
+    value_constraints: list[RetrievalValueConstraint] = Field(default_factory=list)
 
 
 class AnchorStageTrace(BaseModel):
@@ -289,8 +293,7 @@ class AnchorRunView(BaseModel):
     support_inference: SupportInference | None = None
     restriction_binding: RestrictionBinding | None = None
     retrieval_graph: AnchorGraph | None = None
-    retrieval_specifications: RetrievalSpecificationSet | None = None
-    retrieval_bundle: AnchorBundle | None = None
+    retrieval_bundle: RetrievalBundle | None = None
     failure: str | None = None
 
 
@@ -300,7 +303,6 @@ ANCHOR_STAGE_NAMES = [
     "support_inference",
     "restriction_binding",
     "retrieval_graph",
-    "retrieval_specifications",
     "retrieval_bundle",
 ]
 

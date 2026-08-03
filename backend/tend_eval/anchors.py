@@ -18,7 +18,6 @@ from pydantic import BaseModel
 from .config import Settings
 from .contracts import (
     ANCHOR_STAGE_NAMES,
-    AnchorBundle,
     AnchorGraph,
     AnchorKind,
     AnchorRelation,
@@ -34,9 +33,11 @@ from .contracts import (
     NormalizedQuestion,
     NormalizedScalar,
     RestrictionBinding,
+    RetrievalBundle,
+    RetrievalBundleRelation,
+    RetrievalBundleTarget,
     RetrievalRestriction,
-    RetrievalSpecification,
-    RetrievalSpecificationSet,
+    RetrievalValueConstraint,
     SupportInference,
     TargetExtraction,
     TypedSemanticAnchor,
@@ -1193,123 +1194,48 @@ class RetrievalGraphBuilder:
         )
 
 
-class RetrievalSpecificationBuilder:
-    def build(self, graph: AnchorGraph) -> RetrievalSpecificationSet:
-        by_id = {item.anchor_id: item for item in graph.nodes}
-        neighbors: dict[str, list[tuple[TypedSemanticAnchor, AnchorRelation]]] = defaultdict(list)
-        for edge in graph.edges:
-            left = by_id[edge.source_anchor_id]
-            right = by_id[edge.target_anchor_id]
-            neighbors[left.anchor_id].append((right, edge))
-            neighbors[right.anchor_id].append((left, edge))
-        restrictions_by_anchor: dict[str, list[RetrievalRestriction]] = defaultdict(list)
-        for restriction in graph.restrictions:
-            for anchor_id in restriction.anchor_ids:
-                restrictions_by_anchor[anchor_id].append(restriction)
-
-        specifications: list[RetrievalSpecification] = []
-        for anchor in graph.nodes:
-            related = neighbors[anchor.anchor_id]
-            attached = restrictions_by_anchor[anchor.anchor_id]
-            terms: list[str] = []
-            source_terms = [
-                anchor.surface,
-                anchor.canonical,
-                *anchor.aliases,
-                *anchor.parent_hints,
-                *(item.canonical for item, _ in related),
-                *(item.canonical for item in attached),
-                *(str(item.normalized_value) for item in attached if item.normalized_value is not None),
-            ]
-            for source in source_terms:
-                for token in re.findall(r"[A-Za-z0-9][A-Za-z0-9_-]*", source.lower()):
-                    if token not in terms and token not in {"the", "a", "an", "of", "for", "that", "and"}:
-                        terms.append(token)
-            structural = [
-                f"{edge.relation_type}: {item.canonical}" for item, edge in related
-            ] + [
-                f"{restriction.kind}: {restriction.description}" for restriction in attached
-            ]
-            search_kind = self._search_kind(anchor)
-            specifications.append(
-                RetrievalSpecification(
-                    specification_id=f"spec_{len(specifications) + 1}",
-                    anchor_ids=[anchor.anchor_id, *(item.anchor_id for item, _ in related)],
-                    restriction_ids=[item.restriction_id for item in attached],
-                    search_kind=search_kind,
-                    query_terms=terms[:24],
-                    semantic_query=(
-                        f"Retrieve {anchor.retrieval_role} {anchor.kind.value} concept '{anchor.canonical}'. "
-                        f"{anchor.description} Parent context: {', '.join(anchor.parent_hints) or 'unknown'}. "
-                        f"Evidence constraints: {'; '.join(item.description for item in attached) or 'none'}."
-                    ),
-                    expected_bson_types=anchor.expected_bson_types,
-                    structural_constraints=structural,
-                    required=True,
-                    rationale=self._rationale(search_kind),
-                )
-            )
-        return RetrievalSpecificationSet(
-            specifications=specifications,
-            notes=[
-                "Each request targets an entity/group, field path, or evidence needed by a derived concept.",
-                "Restrictions enrich retrieval terms and scoring context without becoming independent searches.",
-                "This stage prepares retrieval requests but does not inspect the schema or database.",
-            ],
-        )
-
-    @staticmethod
-    def _search_kind(anchor: TypedSemanticAnchor) -> str:
-        if anchor.kind == AnchorKind.ENTITY:
-            return "entity_or_group"
-        if anchor.kind == AnchorKind.DERIVED_CONCEPT:
-            return "derived_support"
-        return "field_path"
-
-    @staticmethod
-    def _rationale(search_kind: str) -> str:
-        return {
-            "entity_or_group": "Retrieve collection, object, array, or document-group candidates for the entity.",
-            "field_path": "Retrieve schema paths using concept meaning, aliases, types, parent context, and restrictions.",
-            "derived_support": "Retrieve stored realizations and lower-level evidence capable of deriving the concept.",
-            "relationship": "Retrieve structural evidence connecting the participating concepts.",
-        }[search_kind]
-
-
 class RetrievalBundleBuilder:
     def build(
         self,
         question: str,
-        normalized: NormalizedQuestion,
         graph: AnchorGraph,
-        binding: RestrictionBinding,
-        specifications: RetrievalSpecificationSet,
-    ) -> AnchorBundle:
-        categories = [
-            any(item.retrieval_role == "primary" for item in graph.nodes),
-            any(item.kind == AnchorKind.ENTITY for item in graph.nodes),
-            any(item.output_requested for item in graph.nodes),
-            bool(graph.edges),
-            bool(graph.restrictions),
-            bool(specifications.specifications),
+    ) -> RetrievalBundle:
+        targets = [
+            RetrievalBundleTarget(
+                id=item.anchor_id,
+                kind=item.kind,
+                role=item.retrieval_role,
+                mention=item.surface,
+                canonical=item.canonical,
+                aliases=item.aliases,
+                parent_hints=item.parent_hints,
+                expected_types=item.expected_bson_types,
+            )
+            for item in graph.nodes
         ]
-        weights = [0.25, 0.15, 0.2, 0.15, 0.1, 0.15]
-        coverage = round(
-            sum(weight for present, weight in zip(categories, weights, strict=True) if present),
-            3,
-        )
-        blocking = any("No primary" in warning for warning in graph.validation_warnings)
-        return AnchorBundle(
+        relations = [
+            RetrievalBundleRelation(
+                source=item.source_anchor_id,
+                target=item.target_anchor_id,
+                type=item.relation_type,
+            )
+            for item in graph.edges
+        ]
+        value_constraints = [
+            RetrievalValueConstraint(
+                kind=item.kind,  # type: ignore[arg-type]
+                target_ids=item.anchor_ids,
+                operator=item.operator,
+                value=item.normalized_value,
+            )
+            for item in graph.restrictions
+            if item.kind in {"temporal", "value", "comparison"} and item.anchor_ids
+        ]
+        return RetrievalBundle(
             question=question,
-            normalized_question=normalized,
-            anchors=graph.nodes,
-            relations=graph.edges,
-            restrictions=graph.restrictions,
-            deferred_plan_cues=binding.deferred_plan_cues,
-            retrieval_specifications=specifications.specifications,
-            coverage_score=coverage,
-            ready_for_retrieval=coverage >= 0.7 and not blocking,
-            validation_warnings=graph.validation_warnings,
+            targets=targets,
+            relations=relations,
+            value_constraints=value_constraints,
         )
 
 
@@ -1325,7 +1251,6 @@ class AnchorExtractionPipeline:
         self.support = SupportingFieldInferer(self.llm)
         self.binding = RestrictionBinder()
         self.graph = RetrievalGraphBuilder()
-        self.specifications = RetrievalSpecificationBuilder()
         self.bundle = RetrievalBundleBuilder()
         self._locks: dict[str, threading.Lock] = {}
 
@@ -1401,20 +1326,14 @@ class AnchorExtractionPipeline:
                 lambda value: f"{len(value.nodes)} targets, {len(value.edges)} relations, {len(value.restrictions)} restrictions",
             )
             run.retrieval_graph = graph
-            specifications = self._stage(
-                run,
-                "retrieval_specifications",
-                lambda: self.specifications.build(graph),
-                lambda value: f"{len(value.specifications)} future schema retrieval requests",
-            )
-            run.retrieval_specifications = specifications
             bundle = self._stage(
                 run,
                 "retrieval_bundle",
-                lambda: self.bundle.build(
-                    run.question, normalized, graph, binding, specifications
+                lambda: self.bundle.build(run.question, graph),
+                lambda value: (
+                    f"{len(value.targets)} targets, {len(value.relations)} relations, "
+                    f"{len(value.value_constraints)} value constraints"
                 ),
-                lambda value: f"RetrievalBundle coverage {value.coverage_score:.0%}",
             )
             run.retrieval_bundle = bundle
             run.status = AnchorRunStatus.COMPLETED

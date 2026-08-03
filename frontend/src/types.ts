@@ -266,17 +266,28 @@ export type DeferredPlanCue = {
   end: number | null;
 };
 
-export type RetrievalSpecification = {
-  specification_id: string;
-  anchor_ids: string[];
-  restriction_ids: string[];
-  search_kind: "entity_or_group" | "field_path" | "derived_support" | "relationship";
-  query_terms: string[];
-  semantic_query: string;
-  expected_bson_types: string[];
-  structural_constraints: string[];
-  required: boolean;
-  rationale: string;
+export type RetrievalBundleTarget = {
+  id: string;
+  kind: AnchorKind;
+  role: "primary" | "supporting";
+  mention: string;
+  canonical: string;
+  aliases: string[];
+  parent_hints: string[];
+  expected_types: string[];
+};
+
+export type RetrievalBundleRelation = {
+  source: string;
+  target: string;
+  type: "belongs_to" | "requires_connection" | "scoped_with" | "supports" | "derived_from";
+};
+
+export type RetrievalValueConstraint = {
+  kind: "temporal" | "value" | "comparison";
+  target_ids: string[];
+  operator: string | null;
+  value: string | number | boolean | null;
 };
 
 export type AnchorStageTrace = {
@@ -327,21 +338,11 @@ export type AnchorRunView = {
     connected_components: string[][];
     validation_warnings: string[];
   } | null;
-  retrieval_specifications: {
-    specifications: RetrievalSpecification[];
-    notes: string[];
-  } | null;
   retrieval_bundle: {
     question: string;
-    normalized_question: NormalizedQuestion;
-    anchors: TypedSemanticAnchor[];
-    relations: AnchorRelation[];
-    restrictions: RetrievalRestriction[];
-    deferred_plan_cues: DeferredPlanCue[];
-    retrieval_specifications: RetrievalSpecification[];
-    coverage_score: number;
-    ready_for_retrieval: boolean;
-    validation_warnings: string[];
+    targets: RetrievalBundleTarget[];
+    relations: RetrievalBundleRelation[];
+    value_constraints: RetrievalValueConstraint[];
   } | null;
   failure: string | null;
 };

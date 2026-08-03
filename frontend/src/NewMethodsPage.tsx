@@ -31,7 +31,6 @@ import type {
   Health,
   NormalizedQuestion,
   RetrievalRestriction,
-  RetrievalSpecification,
   TypedSemanticAnchor
 } from "./types";
 
@@ -44,7 +43,6 @@ const LABELS: Record<string, string> = {
   support_inference: "Supporting fields",
   restriction_binding: "Restriction binding",
   retrieval_graph: "Retrieval graph",
-  retrieval_specifications: "Retrieval specifications",
   retrieval_bundle: "RetrievalBundle"
 };
 
@@ -187,7 +185,7 @@ export function NewMethodsPage({
                   <span className={`run-status status-${run.status}`}><i />{run.status}</span>
                   <small>{relativeTime(run.updated_at)}</small>
                   <strong>{run.question}</strong>
-                  <span>{run.mode} · {run.retrieval_bundle?.anchors.length ?? 0} targets</span>
+                  <span>{run.mode} · {run.retrieval_bundle?.targets.length ?? 0} targets</span>
                   {terminal.has(run.status) && <i className="anchor-delete" role="button" onClick={(event) => { event.stopPropagation(); void remove(run.run_id); }}><Trash2 size={12} /></i>}
                 </button>
               ))}
@@ -245,7 +243,6 @@ function StageArtifact({ run, stage, trace }: { run: AnchorRunView; stage: strin
   if (stage === "support_inference" && run.support_inference) return <ExtractionView title="Supporting schema evidence" subtitle="Additional fields are introduced only when filters or derived outputs require them." anchors={run.support_inference.anchors} relations={run.support_inference.relations} notes={run.support_inference.notes} />;
   if (stage === "restriction_binding" && run.restriction_binding) return <RestrictionView values={run.restriction_binding.restrictions} deferred={run.restriction_binding.deferred_plan_cues} notes={run.restriction_binding.notes} />;
   if (stage === "retrieval_graph" && run.retrieval_graph) return <GraphView nodes={run.retrieval_graph.nodes} edges={run.retrieval_graph.edges} restrictions={run.retrieval_graph.restrictions} rootIds={run.retrieval_graph.root_anchor_ids} warnings={run.retrieval_graph.validation_warnings} />;
-  if (stage === "retrieval_specifications" && run.retrieval_specifications) return <SpecificationView values={run.retrieval_specifications.specifications} notes={run.retrieval_specifications.notes} />;
   if (stage === "retrieval_bundle" && run.retrieval_bundle) return <BundleView value={run.retrieval_bundle} />;
   return <Raw value={trace.artifact} />;
 }
@@ -559,12 +556,9 @@ function GraphView({ nodes, edges, restrictions, rootIds, warnings }: { nodes: T
   </div>;
 }
 
-function SpecificationView({ values, notes }: { values: RetrievalSpecification[]; notes: string[] }) {
-  return <div className="anchor-stack"><Hero icon={<FileJson2 size={20} />} label="Prepared, never executed" title={`${values.length} future schema retrieval requests`} detail="Every request targets an entity/group, field path, or evidence for a requested derived concept." /><div className="anchor-specifications">{values.map((item) => <article key={item.specification_id}><div><code>{item.specification_id}</code><span>{item.search_kind.replaceAll("_", " ")}</span><strong>{item.required ? "required" : "optional"}</strong></div><p>{item.semantic_query}</p><div className="anchor-chips small">{item.query_terms.map((term) => <span key={term}>{term}</span>)}</div>{item.structural_constraints.length > 0 && <ul>{item.structural_constraints.map((value) => <li key={value}>{value}</li>)}</ul>}<small>{item.restriction_ids.length} attached restrictions · {item.rationale}</small></article>)}</div><Notes title="Retrieval boundary" values={notes} /></div>;
-}
-
 function BundleView({ value }: { value: NonNullable<AnchorRunView["retrieval_bundle"]> }) {
-  return <div className="anchor-stack"><section className="anchor-bundle-hero"><CheckCircle2 size={24} /><div><span className="eyebrow">COMPLETE RETRIEVALBUNDLE</span><h2>{value.ready_for_retrieval ? "Ready for schema retrieval" : "Review recommended"}</h2><p>{value.anchors.length} targets · {value.relations.length} relations · {value.restrictions.length} restrictions · {value.retrieval_specifications.length} specifications</p></div><strong>{Math.round(value.coverage_score * 100)}%<small>coverage</small></strong></section><AnchorCards values={value.anchors} /><DeferredCues values={value.deferred_plan_cues} /><Notes title="Bundle warnings" values={value.validation_warnings} danger /><Raw value={value} /></div>;
+  const targetNames = new Map(value.targets.map((item) => [item.id, item.canonical]));
+  return <div className="anchor-stack"><section className="anchor-bundle-hero"><CheckCircle2 size={24} /><div><span className="eyebrow">MINIMAL RETRIEVALBUNDLE</span><h2>Ready for schema scoring</h2><p>{value.targets.length} targets · {value.relations.length} relations · {value.value_constraints.length} value constraints</p></div><strong>4<small>top-level fields</small></strong></section><div className="anchor-card-grid">{value.targets.map((target) => <article className="anchor-card" key={target.id}><div><code>{target.id}</code><span className={`anchor-kind ${target.kind}`}>{target.kind.replaceAll("_", " ")}</span><strong>{target.role}</strong></div><h3>{target.canonical}</h3><p>“{target.mention}”</p><footer>{target.parent_hints.map((item) => <span key={item}>{item}</span>)}</footer>{target.expected_types.length > 0 && <div className="anchor-chips small">{target.expected_types.map((item) => <span key={item}>{item}</span>)}</div>}{target.aliases.length > 0 && <small className="anchor-alternatives">Aliases: {target.aliases.join(" · ")}</small>}</article>)}</div>{value.relations.length > 0 && <Section title="Minimal relations" count={value.relations.length}><div className="anchor-relations">{value.relations.map((relation, index) => <div key={`${relation.source}-${relation.target}-${index}`}><code>{targetNames.get(relation.source) ?? relation.source}</code><span>{relation.type.replaceAll("_", " ")}</span><code>{targetNames.get(relation.target) ?? relation.target}</code><p>Structural link retained for coherent subtree selection.</p></div>)}</div></Section>}{value.value_constraints.length > 0 && <Section title="Value constraints" count={value.value_constraints.length}><div className="anchor-bundle-constraints">{value.value_constraints.map((constraint, index) => <article key={`${constraint.kind}-${index}`}><span>{constraint.kind}</span><strong>{constraint.operator ?? "context"} · {String(constraint.value)}</strong><p>{constraint.target_ids.map((id) => targetNames.get(id) ?? id).join(" · ")}</p></article>)}</div></Section>}<Raw value={value} /></div>;
 }
 
 function Hero({ icon, label, title, detail }: { icon: React.ReactNode; label: string; title: string; detail: string }) {
