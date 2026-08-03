@@ -26,7 +26,7 @@ def settings_for(tmp_path: Path) -> Settings:
     )
 
 
-def test_deterministic_anchor_pipeline_persists_all_seven_stages(tmp_path: Path) -> None:
+def test_retrieval_pipeline_persists_all_seven_stages(tmp_path: Path) -> None:
     settings = settings_for(tmp_path)
     store = AnchorRunStore(settings.sqlite_path)
     store.initialize()
@@ -51,13 +51,50 @@ def test_deterministic_anchor_pipeline_persists_all_seven_stages(tmp_path: Path)
         "KEEP_ALL_TIES",
         "DESC",
     }
-    assert finished.anchor_bundle is not None
+    assert [stage.stage for stage in finished.stages] == [
+        "normalization",
+        "target_extraction",
+        "support_inference",
+        "restriction_binding",
+        "retrieval_graph",
+        "retrieval_specifications",
+        "retrieval_bundle",
+    ]
+    assert finished.retrieval_bundle is not None
     assert any(
         item.kind == AnchorKind.ENTITY and item.canonical == "constructor"
-        for item in finished.anchor_bundle.anchors
+        for item in finished.retrieval_bundle.anchors
     )
-    assert any(item.search_kind == "path" for item in finished.anchor_bundle.retrieval_specifications)
-    assert finished.anchor_bundle.ready_for_retrieval
+    assert "for" not in {item.canonical for item in finished.retrieval_bundle.anchors}
+    assert {item.kind for item in finished.retrieval_bundle.anchors} <= {
+        AnchorKind.ENTITY,
+        AnchorKind.FIELD,
+        AnchorKind.DERIVED_CONCEPT,
+    }
+    assert any(
+        item.canonical == "finishing position" and item.retrieval_role == "supporting"
+        for item in finished.retrieval_bundle.anchors
+    )
+    assert any(
+        item.kind == "temporal" and item.normalized_value == 2021
+        for item in finished.retrieval_bundle.restrictions
+    )
+    by_id = {item.anchor_id: item for item in finished.retrieval_bundle.anchors}
+    ranking = next(
+        item
+        for item in finished.retrieval_bundle.restrictions
+        if item.operator == "ARGMAX"
+    )
+    assert {by_id[item].canonical for item in ranking.anchor_ids} == {"points"}
+    assert {item.kind for item in finished.retrieval_bundle.deferred_plan_cues} >= {
+        "sorting",
+        "tie_policy",
+    }
+    assert any(
+        item.search_kind == "field_path"
+        for item in finished.retrieval_bundle.retrieval_specifications
+    )
+    assert finished.retrieval_bundle.ready_for_retrieval
 
 
 def test_anchor_api_is_available_without_dataset_or_mongodb(tmp_path: Path) -> None:
@@ -72,7 +109,7 @@ def test_anchor_api_is_available_without_dataset_or_mongodb(tmp_path: Path) -> N
         fetched = client.get(f"/api/new-methods/anchor-runs/{run_id}")
         assert fetched.status_code == 200
         assert fetched.json()["status"] == "completed"
-        assert fetched.json()["anchor_bundle"]["retrieval_specifications"]
+        assert fetched.json()["retrieval_bundle"]["retrieval_specifications"]
         deleted = client.delete(f"/api/new-methods/anchor-runs/{run_id}")
         assert deleted.status_code == 204
 
@@ -101,13 +138,13 @@ def test_auto_mode_falls_back_when_semantic_provider_is_unavailable(
 
     assert finished is not None
     assert finished.status == AnchorRunStatus.COMPLETED
-    assert finished.semantic_extraction is not None
-    assert any("auto mode" in note for note in finished.semantic_extraction.notes)
+    assert finished.support_inference is not None
+    assert any("auto mode" in note for note in finished.support_inference.notes)
 
 
 def test_llm_json_schema_is_closed_for_strict_output() -> None:
-    from tend_eval.contracts import SemanticAnchorExtraction
+    from tend_eval.contracts import SupportInference
 
-    schema = StructuredAnchorLLM._strict_schema(SemanticAnchorExtraction.model_json_schema())
+    schema = StructuredAnchorLLM._strict_schema(SupportInference.model_json_schema())
     assert schema["additionalProperties"] is False
     assert schema["required"] == list(schema["properties"])

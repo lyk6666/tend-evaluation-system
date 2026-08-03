@@ -9,7 +9,6 @@ import {
   CircleDashed,
   Clock3,
   FileJson2,
-  GitBranch,
   LoaderCircle,
   Maximize2,
   Minus,
@@ -25,12 +24,13 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "./api";
 import type {
-  AnchorAmbiguity,
   AnchorRelation,
   AnchorRunView,
   AnchorStageTrace,
+  DeferredPlanCue,
   Health,
   NormalizedQuestion,
+  RetrievalRestriction,
   RetrievalSpecification,
   TypedSemanticAnchor
 } from "./types";
@@ -40,12 +40,12 @@ const EXAMPLE =
 
 const LABELS: Record<string, string> = {
   normalization: "Normalized question",
-  deterministic_extraction: "Deterministic extraction",
-  semantic_extraction: "Semantic extraction",
-  ambiguity_extraction: "Ambiguity extraction",
-  anchor_graph: "Anchor graph",
+  target_extraction: "Retrieval targets",
+  support_inference: "Supporting fields",
+  restriction_binding: "Restriction binding",
+  retrieval_graph: "Retrieval graph",
   retrieval_specifications: "Retrieval specifications",
-  anchor_bundle: "AnchorBundle"
+  retrieval_bundle: "RetrievalBundle"
 };
 
 const terminal = new Set(["completed", "failed"]);
@@ -85,7 +85,7 @@ export function NewMethodsPage({
         ]);
         const running = updated.stages.find((item) => item.status === "running");
         if (running) setSelectedStage(running.stage);
-        if (updated.status === "completed") setSelectedStage("anchor_bundle");
+        if (updated.status === "completed") setSelectedStage("retrieval_bundle");
       } catch (value) {
         setError(String(value));
       }
@@ -165,9 +165,9 @@ export function NewMethodsPage({
       <main className="anchor-main">
         <section className="anchor-intro">
           <div>
-            <span className="eyebrow">NEW METHOD · EXTRACTION ONLY</span>
-            <h1>Typed semantic anchors.<br /><em>Every decision visible.</em></h1>
-            <p>Understand the question completely before schema retrieval or query planning begins.</p>
+            <span className="eyebrow">NEW METHOD · RETRIEVAL PREPARATION</span>
+            <h1>Retrieval concepts.<br /><em>Only schema evidence.</em></h1>
+            <p>Extract entities and fields, infer necessary supporting evidence, then bind restrictions without constructing a query plan.</p>
           </div>
           <div className="anchor-boundary"><Network size={25} /><strong>0</strong><span>schema lookups</span></div>
         </section>
@@ -177,17 +177,17 @@ export function NewMethodsPage({
         <section className="anchor-layout">
           <aside className="panel anchor-history">
             <div className="panel-head">
-              <div><span className="step">H</span><h2>Anchor runs</h2></div>
-              <button className="anchor-icon-button" onClick={() => { setActive(null); setQuestion(EXAMPLE); setSelectedStage("normalization"); }} title="New anchor run"><Plus size={15} /></button>
+              <div><span className="step">H</span><h2>Retrieval runs</h2></div>
+              <button className="anchor-icon-button" onClick={() => { setActive(null); setQuestion(EXAMPLE); setSelectedStage("normalization"); }} title="New retrieval run"><Plus size={15} /></button>
             </div>
-            <div className="anchor-boundary-note"><Tags size={15} /><span>Schema-independent extraction. Retrieval specifications are prepared but never executed.</span></div>
+            <div className="anchor-boundary-note"><Tags size={15} /><span>Entities and paths are targets. Values and operations only restrict or support those targets.</span></div>
             <div className="anchor-history-list">
               {runs.map((run) => (
                 <button key={run.run_id} className={active?.run_id === run.run_id ? "active" : ""} onClick={() => void select(run.run_id)}>
                   <span className={`run-status status-${run.status}`}><i />{run.status}</span>
                   <small>{relativeTime(run.updated_at)}</small>
                   <strong>{run.question}</strong>
-                  <span>{run.mode} · {run.anchor_bundle?.anchors.length ?? 0} anchors</span>
+                  <span>{run.mode} · {run.retrieval_bundle?.anchors.length ?? 0} targets</span>
                   {terminal.has(run.status) && <i className="anchor-delete" role="button" onClick={(event) => { event.stopPropagation(); void remove(run.run_id); }}><Trash2 size={12} /></i>}
                 </button>
               ))}
@@ -198,12 +198,12 @@ export function NewMethodsPage({
           <div className="anchor-content">
             <section className="panel anchor-composer">
               <div className="panel-head">
-                <div><span className="step">01</span><h2>Extract typed semantic anchors</h2></div>
+                <div><span className="step">01</span><h2>Prepare schema retrieval concepts</h2></div>
                 <label className="anchor-mode"><span>Mode</span><select value={mode} onChange={(event) => setMode(event.target.value as typeof mode)}><option value="auto">Auto</option><option value="llm">GPT semantic enrichment</option><option value="deterministic">Deterministic</option></select></label>
               </div>
               <div className="anchor-question-row">
                 <textarea value={question} onChange={(event) => setQuestion(event.target.value)} rows={5} placeholder="Enter a natural-language query" />
-                <button disabled={busy || question.trim().length < 3} onClick={() => void start()}>{busy ? <LoaderCircle size={17} className="spin" /> : <Sparkles size={17} />} Extract anchors</button>
+                <button disabled={busy || question.trim().length < 3} onClick={() => void start()}>{busy ? <LoaderCircle size={17} className="spin" /> : <Sparkles size={17} />} Prepare retrieval</button>
               </div>
               <div className="anchor-composer-foot"><span>7 persisted stages · no schema or MongoDB access</span><span>{question.length} characters</span></div>
             </section>
@@ -224,7 +224,7 @@ export function NewMethodsPage({
                 </div>
               </section>
             ) : (
-              <section className="panel anchor-empty"><Network size={34} /><span className="eyebrow">EVIDENCE BEFORE PLANNING</span><h2>Inspect meaning before touching the schema.</h2><p>Normalization, two extraction layers, ambiguity, graph validation, specifications, and the final AnchorBundle are individually inspectable.</p></section>
+              <section className="panel anchor-empty"><Network size={34} /><span className="eyebrow">RETRIEVAL BEFORE PLANNING</span><h2>Find only the schema evidence the question needs.</h2><p>Inspect primary targets, supporting fields, contextual restrictions, the retrieval graph, and prepared schema-search requests.</p></section>
             )}
           </div>
         </section>
@@ -241,12 +241,12 @@ function StageArtifact({ run, stage, trace }: { run: AnchorRunView; stage: strin
   if (!trace || !["completed", "failed"].includes(trace.status)) return <WaitingStage trace={trace} />;
   if (trace.status === "failed") return <Raw value={{ error: trace.error, artifact: trace.artifact }} />;
   if (stage === "normalization" && run.normalized_question) return <NormalizationView value={run.normalized_question} />;
-  if (stage === "deterministic_extraction" && run.deterministic_extraction) return <ExtractionView title="Deterministic anchors" subtitle="Closed-vocabulary operators, explicit values, outputs, and conservative phrase candidates." anchors={run.deterministic_extraction.anchors} relations={run.deterministic_extraction.relations} notes={[...run.deterministic_extraction.notes, ...run.deterministic_extraction.unresolved_phrases.map((item) => `Unresolved: ${item}`)]} />;
-  if (stage === "semantic_extraction" && run.semantic_extraction) return <ExtractionView title="Semantic anchors" subtitle="Entities, attributes, measures, relationships, outputs, and implicit scope." anchors={run.semantic_extraction.anchors} relations={run.semantic_extraction.relations} notes={run.semantic_extraction.notes} />;
-  if (stage === "ambiguity_extraction" && run.ambiguity_extraction) return <AmbiguityView values={run.ambiguity_extraction.ambiguities} notes={run.ambiguity_extraction.notes} />;
-  if (stage === "anchor_graph" && run.anchor_graph) return <GraphView nodes={run.anchor_graph.nodes} edges={run.anchor_graph.edges} rootIds={run.anchor_graph.root_anchor_ids} warnings={run.anchor_graph.validation_warnings} />;
+  if (stage === "target_extraction" && run.target_extraction) return <ExtractionView title="Primary retrieval targets" subtitle="Only entities, requested fields, and requested derived concepts can become targets." anchors={run.target_extraction.anchors} relations={run.target_extraction.relations} notes={[...run.target_extraction.notes, ...run.target_extraction.unresolved_phrases.map((item) => `Unresolved phrase: ${item}`)]} deferred={run.target_extraction.deferred_plan_cues} />;
+  if (stage === "support_inference" && run.support_inference) return <ExtractionView title="Supporting schema evidence" subtitle="Additional fields are introduced only when filters or derived outputs require them." anchors={run.support_inference.anchors} relations={run.support_inference.relations} notes={run.support_inference.notes} />;
+  if (stage === "restriction_binding" && run.restriction_binding) return <RestrictionView values={run.restriction_binding.restrictions} deferred={run.restriction_binding.deferred_plan_cues} notes={run.restriction_binding.notes} />;
+  if (stage === "retrieval_graph" && run.retrieval_graph) return <GraphView nodes={run.retrieval_graph.nodes} edges={run.retrieval_graph.edges} restrictions={run.retrieval_graph.restrictions} rootIds={run.retrieval_graph.root_anchor_ids} warnings={run.retrieval_graph.validation_warnings} />;
   if (stage === "retrieval_specifications" && run.retrieval_specifications) return <SpecificationView values={run.retrieval_specifications.specifications} notes={run.retrieval_specifications.notes} />;
-  if (stage === "anchor_bundle" && run.anchor_bundle) return <BundleView value={run.anchor_bundle} />;
+  if (stage === "retrieval_bundle" && run.retrieval_bundle) return <BundleView value={run.retrieval_bundle} />;
   return <Raw value={trace.artifact} />;
 }
 
@@ -258,20 +258,25 @@ function NormalizationView({ value }: { value: NormalizedQuestion }) {
   return <div className="anchor-stack"><Hero icon={<Braces size={20} />} label="Conservative normalized text" title={value.normalized_text} detail={`${value.clauses.length} clauses · ${value.scalars.length} scalars · ${value.cues.length} cues`} /><div className="anchor-two-column"><Section title="Clauses" count={value.clauses.length}>{value.clauses.map((item) => <div className="anchor-clause" key={item.clause_id}><code>{item.clause_id}</code><span>{item.text}</span></div>)}</Section><Section title="Scalars" count={value.scalars.length}><div className="anchor-chips">{value.scalars.map((item) => <span key={item.scalar_id}><code>{String(item.normalized)}</code>{item.scalar_type} · {item.context || "unscoped"}</span>)}</div></Section></div><Section title="Canonical cues" count={value.cues.length}><div className="anchor-cue-grid">{value.cues.map((cue) => <article key={cue.cue_id}><span>{cue.category}</span><strong>{cue.canonical}</strong><p>“{cue.surface}”</p><small>{cue.scope_hint}</small></article>)}</div></Section><Notes title="Semantic spans" values={value.semantic_spans} /><Raw value={value} /></div>;
 }
 
-function ExtractionView({ title, subtitle, anchors, relations, notes }: { title: string; subtitle: string; anchors: TypedSemanticAnchor[]; relations: AnchorRelation[]; notes: string[] }) {
-  return <div className="anchor-stack"><Hero icon={<Tags size={20} />} label={title} title={`${anchors.length} typed anchors`} detail={subtitle} /><AnchorCards values={anchors} />{relations.length > 0 && <RelationList values={relations} />}<Notes title="Extraction notes" values={notes} /></div>;
+function ExtractionView({ title, subtitle, anchors, relations, notes, deferred = [] }: { title: string; subtitle: string; anchors: TypedSemanticAnchor[]; relations: AnchorRelation[]; notes: string[]; deferred?: DeferredPlanCue[] }) {
+  return <div className="anchor-stack"><Hero icon={<Tags size={20} />} label={title} title={`${anchors.length} retrieval targets`} detail={subtitle} /><AnchorCards values={anchors} />{relations.length > 0 && <RelationList values={relations} />}{deferred.length > 0 && <DeferredCues values={deferred} />}<Notes title="Extraction notes" values={notes} /></div>;
 }
 
 function AnchorCards({ values }: { values: TypedSemanticAnchor[] }) {
-  return <div className="anchor-card-grid">{values.map((anchor) => <article className="anchor-card" key={anchor.anchor_id}><div><code>{anchor.anchor_id}</code><span className={`anchor-kind ${anchor.kind}`}>{anchor.kind}</span><strong>{Math.round(anchor.confidence * 100)}%</strong></div><h3>{anchor.canonical}</h3><p>{anchor.description}</p><footer><span>{anchor.source}</span><span>{anchor.explicit ? "explicit" : "inferred"}</span><span>{anchor.semantic_role}</span></footer>{anchor.expected_bson_types.length > 0 && <div className="anchor-chips small">{anchor.expected_bson_types.map((item) => <span key={item}>{item}</span>)}</div>}{anchor.alternatives.length > 0 && <small className="anchor-alternatives">Alternatives: {anchor.alternatives.join(" · ")}</small>}</article>)}</div>;
+  return <div className="anchor-card-grid">{values.map((anchor) => <article className="anchor-card" key={anchor.anchor_id}><div><code>{anchor.anchor_id}</code><span className={`anchor-kind ${anchor.kind}`}>{anchor.kind.replaceAll("_", " ")}</span><strong>{Math.round(anchor.confidence * 100)}%</strong></div><h3>{anchor.canonical}</h3><p>{anchor.description}</p><footer><span>{anchor.retrieval_role}</span><span>{anchor.explicit ? "explicit" : "inferred"}</span>{anchor.output_requested && <span>requested output</span>}</footer>{anchor.expected_bson_types.length > 0 && <div className="anchor-chips small">{anchor.expected_bson_types.map((item) => <span key={item}>{item}</span>)}</div>}{anchor.aliases.length > 0 && <small className="anchor-alternatives">Aliases: {anchor.aliases.join(" · ")}</small>}{anchor.derivation_hints.length > 0 && <small className="anchor-alternatives">Evidence: {anchor.derivation_hints.join(" · ")}</small>}</article>)}</div>;
 }
 
 function RelationList({ values }: { values: AnchorRelation[] }) {
   return <Section title="Semantic relations" count={values.length}><div className="anchor-relations">{values.map((item) => <div key={item.relation_id}><code>{item.source_anchor_id}</code><span>{item.relation_type.replaceAll("_", " ")}</span><code>{item.target_anchor_id}</code><p>{item.description}</p></div>)}</div></Section>;
 }
 
-function AmbiguityView({ values, notes }: { values: AnchorAmbiguity[]; notes: string[] }) {
-  return <div className="anchor-stack"><Hero icon={<GitBranch size={20} />} label="Retained uncertainty" title={`${values.length} ambiguity candidates`} detail="Alternatives remain available for evidence-based resolution after extraction." /><div className="anchor-ambiguities">{values.map((item) => <article key={item.ambiguity_id}><div><span>{item.ambiguity_type}</span><code>{item.blocking ? "blocking" : "non-blocking"}</code></div><h3>{item.text}</h3><ul>{item.interpretations.map((value) => <li key={value}>{value}</li>)}</ul><p><strong>Recommended:</strong> {item.recommended_interpretation}</p><small>{item.reason}</small></article>)}</div><Notes title="Ambiguity policy" values={notes} /></div>;
+function RestrictionView({ values, deferred, notes }: { values: RetrievalRestriction[]; deferred: DeferredPlanCue[]; notes: string[] }) {
+  return <div className="anchor-stack"><Hero icon={<Braces size={20} />} label="Context attached to targets" title={`${values.length} retrieval restrictions`} detail="Values and operation language constrain target scoring without becoming independent graph nodes." /><div className="anchor-restrictions">{values.map((item) => <article key={item.restriction_id}><div><span>{item.kind.replaceAll("_", " ")}</span><code>{item.retrieval_effect.replaceAll("_", " ")}</code></div><h3>{item.surface}</h3><p>{item.description}</p><footer><span>{item.operator ?? "context"}{item.normalized_value == null ? "" : ` · ${String(item.normalized_value)}`}</span><span>{item.anchor_ids.length} targets</span><strong>{Math.round(item.confidence * 100)}%</strong></footer><div className="anchor-chips small">{item.anchor_ids.map((id) => <span key={id}>{id}</span>)}</div></article>)}</div><DeferredCues values={deferred} /><Notes title="Binding policy" values={notes} /></div>;
+}
+
+function DeferredCues({ values }: { values: DeferredPlanCue[] }) {
+  if (!values.length) return null;
+  return <Section title="Deferred plan cues" count={values.length}><div className="anchor-deferred-cues">{values.map((item) => <article key={item.cue_id}><span>{item.kind.replaceAll("_", " ")}</span><strong>{item.surface}</strong><code>{item.canonical}</code><p>{item.reason}</p></article>)}</div></Section>;
 }
 
 const TREE_NODE_WIDTH = 176;
@@ -384,7 +389,7 @@ function buildTreeLayout(nodes: TypedSemanticAnchor[], edges: AnchorRelation[], 
   };
 }
 
-function GraphView({ nodes, edges, rootIds, warnings }: { nodes: TypedSemanticAnchor[]; edges: AnchorRelation[]; rootIds: string[]; warnings: string[] }) {
+function GraphView({ nodes, edges, restrictions, rootIds, warnings }: { nodes: TypedSemanticAnchor[]; edges: AnchorRelation[]; restrictions: RetrievalRestriction[]; rootIds: string[]; warnings: string[] }) {
   const layout = useMemo(() => buildTreeLayout(nodes, edges, rootIds), [nodes, edges, rootIds]);
   const nodeById = useMemo(() => new Map(nodes.map((node) => [node.anchor_id, node])), [nodes]);
   const [selectedId, setSelectedId] = useState(rootIds.find((id) => nodeById.has(id)) ?? nodes[0]?.anchor_id ?? "");
@@ -431,10 +436,11 @@ function GraphView({ nodes, edges, rootIds, warnings }: { nodes: TypedSemanticAn
 
   const selected = nodeById.get(selectedId) ?? null;
   const selectedRelations = edges.filter((edge) => edge.source_anchor_id === selectedId || edge.target_anchor_id === selectedId);
+  const selectedRestrictions = restrictions.filter((restriction) => restriction.anchor_ids.includes(selectedId));
   const rootSet = new Set(layout.roots);
 
   return <div className="anchor-stack anchor-graph-stack">
-    <Hero icon={<Network size={20} />} label="Validated anchor graph" title={`${nodes.length} nodes · ${edges.length} edges`} detail="Tree edges show the traversal hierarchy; dashed links preserve additional semantic relationships." />
+    <Hero icon={<Network size={20} />} label="Validated retrieval graph" title={`${nodes.length} targets · ${edges.length} relations · ${restrictions.length} restrictions`} detail="Only retrievable concepts are nodes. Restrictions remain attached metadata, and dashed links preserve additional structural context." />
     <section className="anchor-tree-workspace">
       <div className="anchor-tree-canvas" ref={canvasRef}>
         <div className="anchor-tree-toolbar" aria-label="Graph view controls">
@@ -529,13 +535,16 @@ function GraphView({ nodes, edges, rootIds, warnings }: { nodes: TypedSemanticAn
           <p className="anchor-tree-surface">“{selected.surface}”</p>
           <p>{selected.description}</p>
           <dl>
-            <div><dt>Semantic role</dt><dd>{selected.semantic_role || "Unspecified"}</dd></div>
+            <div><dt>Retrieval role</dt><dd>{selected.retrieval_role}</dd></div>
             <div><dt>Evidence</dt><dd>{selected.source} · {selected.explicit ? "explicit" : "inferred"}</dd></div>
             <div><dt>Source span</dt><dd>{selected.start == null || selected.end == null ? "Implicit" : `${selected.start}–${selected.end}`}</dd></div>
-            <div><dt>Retrieval</dt><dd>{selected.retrieval_required ? "Required later" : "Control only"}</dd></div>
+            <div><dt>Requested output</dt><dd>{selected.output_requested ? "Yes" : "Supporting evidence"}</dd></div>
           </dl>
           {selected.expected_bson_types.length > 0 && <div className="anchor-tree-detail-group"><strong>Expected BSON types</strong><div className="anchor-chips small">{selected.expected_bson_types.map((value) => <span key={value}>{value}</span>)}</div></div>}
-          {selected.alternatives.length > 0 && <div className="anchor-tree-detail-group"><strong>Alternatives</strong><p>{selected.alternatives.join(" · ")}</p></div>}
+          {selected.aliases.length > 0 && <div className="anchor-tree-detail-group"><strong>Aliases</strong><p>{selected.aliases.join(" · ")}</p></div>}
+          {selected.parent_hints.length > 0 && <div className="anchor-tree-detail-group"><strong>Parent context</strong><p>{selected.parent_hints.join(" · ")}</p></div>}
+          {selected.derivation_hints.length > 0 && <div className="anchor-tree-detail-group"><strong>Supporting evidence</strong><p>{selected.derivation_hints.join(" · ")}</p></div>}
+          <div className="anchor-tree-detail-group"><strong>Attached restrictions <span>{selectedRestrictions.length}</span></strong><div className="anchor-tree-restriction-list">{selectedRestrictions.map((restriction) => <article key={restriction.restriction_id}><span>{restriction.kind.replaceAll("_", " ")}</span><strong>{restriction.surface}</strong><p>{restriction.operator ?? restriction.retrieval_effect}{restriction.normalized_value == null ? "" : ` · ${String(restriction.normalized_value)}`}</p></article>)}{!selectedRestrictions.length && <small>No attached restrictions.</small>}</div></div>
           <div className="anchor-tree-detail-group"><strong>Connected relations <span>{selectedRelations.length}</span></strong><div className="anchor-tree-relation-list">{selectedRelations.map((edge) => {
             const outgoing = edge.source_anchor_id === selectedId;
             const peerId = outgoing ? edge.target_anchor_id : edge.source_anchor_id;
@@ -551,12 +560,11 @@ function GraphView({ nodes, edges, rootIds, warnings }: { nodes: TypedSemanticAn
 }
 
 function SpecificationView({ values, notes }: { values: RetrievalSpecification[]; notes: string[] }) {
-  const actionable = values.filter((item) => item.search_kind !== "none");
-  return <div className="anchor-stack"><Hero icon={<FileJson2 size={20} />} label="Prepared, never executed" title={`${actionable.length} future retrieval requests`} detail={`${values.length - actionable.length} control anchors constrain later scoring without issuing retrieval.`} /><div className="anchor-specifications">{actionable.map((item) => <article key={item.specification_id}><div><code>{item.specification_id}</code><span>{item.search_kind.replaceAll("_", " ")}</span><strong>{item.required ? "required" : "optional"}</strong></div><p>{item.semantic_query}</p><div className="anchor-chips small">{item.query_terms.map((term) => <span key={term}>{term}</span>)}</div>{item.structural_constraints.length > 0 && <ul>{item.structural_constraints.map((value) => <li key={value}>{value}</li>)}</ul>}<small>{item.rationale}</small></article>)}</div><Notes title="Retrieval boundary" values={notes} /></div>;
+  return <div className="anchor-stack"><Hero icon={<FileJson2 size={20} />} label="Prepared, never executed" title={`${values.length} future schema retrieval requests`} detail="Every request targets an entity/group, field path, or evidence for a requested derived concept." /><div className="anchor-specifications">{values.map((item) => <article key={item.specification_id}><div><code>{item.specification_id}</code><span>{item.search_kind.replaceAll("_", " ")}</span><strong>{item.required ? "required" : "optional"}</strong></div><p>{item.semantic_query}</p><div className="anchor-chips small">{item.query_terms.map((term) => <span key={term}>{term}</span>)}</div>{item.structural_constraints.length > 0 && <ul>{item.structural_constraints.map((value) => <li key={value}>{value}</li>)}</ul>}<small>{item.restriction_ids.length} attached restrictions · {item.rationale}</small></article>)}</div><Notes title="Retrieval boundary" values={notes} /></div>;
 }
 
-function BundleView({ value }: { value: NonNullable<AnchorRunView["anchor_bundle"]> }) {
-  return <div className="anchor-stack"><section className="anchor-bundle-hero"><CheckCircle2 size={24} /><div><span className="eyebrow">COMPLETE ANCHORBUNDLE</span><h2>{value.ready_for_retrieval ? "Ready for retrieval" : "Review recommended"}</h2><p>{value.anchors.length} anchors · {value.relations.length} relations · {value.ambiguities.length} ambiguities · {value.retrieval_specifications.length} specifications</p></div><strong>{Math.round(value.coverage_score * 100)}%<small>coverage</small></strong></section><AnchorCards values={value.anchors} /><Notes title="Bundle warnings" values={value.validation_warnings} danger /><Raw value={value} /></div>;
+function BundleView({ value }: { value: NonNullable<AnchorRunView["retrieval_bundle"]> }) {
+  return <div className="anchor-stack"><section className="anchor-bundle-hero"><CheckCircle2 size={24} /><div><span className="eyebrow">COMPLETE RETRIEVALBUNDLE</span><h2>{value.ready_for_retrieval ? "Ready for schema retrieval" : "Review recommended"}</h2><p>{value.anchors.length} targets · {value.relations.length} relations · {value.restrictions.length} restrictions · {value.retrieval_specifications.length} specifications</p></div><strong>{Math.round(value.coverage_score * 100)}%<small>coverage</small></strong></section><AnchorCards values={value.anchors} /><DeferredCues values={value.deferred_plan_cues} /><Notes title="Bundle warnings" values={value.validation_warnings} danger /><Raw value={value} /></div>;
 }
 
 function Hero({ icon, label, title, detail }: { icon: React.ReactNode; label: string; title: string; detail: string }) {

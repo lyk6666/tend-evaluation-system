@@ -58,20 +58,8 @@ class AnchorRunStatus(StrEnum):
 
 class AnchorKind(StrEnum):
     ENTITY = "entity"
-    ATTRIBUTE = "attribute"
-    MEASURE = "measure"
-    STORED_LITERAL = "stored_literal"
-    QUERY_CONSTANT = "query_constant"
-    TEMPORAL = "temporal"
-    OPERATION = "operation"
-    COMPARISON = "comparison"
-    OUTPUT = "output"
-    RELATIONSHIP = "relationship"
-    GROUPING = "grouping"
-    SORT = "sort"
-    TIE_POLICY = "tie_policy"
-    QUANTIFIER = "quantifier"
-    NEGATION = "negation"
+    FIELD = "field"
+    DERIVED_CONCEPT = "derived_concept"
 
 
 class AnchorSource(StrEnum):
@@ -138,15 +126,17 @@ class TypedSemanticAnchor(BaseModel):
     surface: str
     canonical: str
     description: str
-    semantic_role: str
+    retrieval_role: Literal["primary", "supporting"]
     expected_bson_types: list[str] = Field(default_factory=list)
+    aliases: list[str] = Field(default_factory=list)
+    parent_hints: list[str] = Field(default_factory=list)
+    output_requested: bool = False
+    derivation_hints: list[str] = Field(default_factory=list)
     explicit: bool = True
     source: AnchorSource
     start: int | None = None
     end: int | None = None
     confidence: float = Field(default=0.8, ge=0, le=1)
-    alternatives: list[str] = Field(default_factory=list)
-    retrieval_required: bool = True
 
 
 class AnchorRelation(BaseModel):
@@ -154,60 +144,77 @@ class AnchorRelation(BaseModel):
     source_anchor_id: str
     target_anchor_id: str
     relation_type: Literal[
-        "modifies",
-        "filters",
-        "aggregates",
-        "outputs",
-        "grouped_by",
-        "related_to",
-        "same_scope",
-        "compares_to",
-        "ranked_by",
-        "partitioned_by",
-        "sorted_by",
-        "corefers_to",
-        "quantifies",
+        "belongs_to",
+        "requires_connection",
+        "scoped_with",
+        "supports",
+        "derived_from",
     ]
     description: str = ""
     confidence: float = Field(default=0.8, ge=0, le=1)
     source: AnchorSource = AnchorSource.INFERRED
 
 
-class DeterministicAnchorExtraction(BaseModel):
+class DeferredPlanCue(BaseModel):
+    cue_id: str
+    surface: str
+    kind: Literal["sorting", "tie_policy", "presentation"]
+    canonical: str
+    reason: str
+    start: int | None = None
+    end: int | None = None
+
+
+class TargetExtraction(BaseModel):
     anchors: list[TypedSemanticAnchor] = Field(default_factory=list)
     relations: list[AnchorRelation] = Field(default_factory=list)
     unresolved_phrases: list[str] = Field(default_factory=list)
+    deferred_plan_cues: list["DeferredPlanCue"] = Field(default_factory=list)
     notes: list[str] = Field(default_factory=list)
 
 
-class SemanticAnchorExtraction(BaseModel):
+class SupportInference(BaseModel):
     anchors: list[TypedSemanticAnchor] = Field(default_factory=list)
     relations: list[AnchorRelation] = Field(default_factory=list)
     notes: list[str] = Field(default_factory=list)
 
 
-class AnchorAmbiguity(BaseModel):
-    ambiguity_id: str
-    text: str
-    ambiguity_type: Literal[
-        "attachment", "coreference", "scope", "measure", "operator", "lexical", "realization"
+class RetrievalRestriction(BaseModel):
+    restriction_id: str
+    kind: Literal[
+        "temporal",
+        "value",
+        "comparison",
+        "cardinality",
+        "role_hint",
+        "eligibility",
+        "scope",
     ]
+    surface: str
+    canonical: str
+    description: str
     anchor_ids: list[str] = Field(default_factory=list)
-    interpretations: list[str] = Field(default_factory=list)
-    recommended_interpretation: str = ""
-    reason: str = ""
-    blocking: bool = False
-    confidence: float = Field(default=0.7, ge=0, le=1)
+    operator: str | None = None
+    normalized_value: str | int | float | bool | None = None
+    retrieval_effect: Literal[
+        "filter_value", "type_hint", "role_hint", "support_requirement", "relation_scope"
+    ]
+    source: AnchorSource = AnchorSource.RULE
+    start: int | None = None
+    end: int | None = None
+    confidence: float = Field(default=0.8, ge=0, le=1)
 
 
-class AmbiguityExtraction(BaseModel):
-    ambiguities: list[AnchorAmbiguity] = Field(default_factory=list)
+class RestrictionBinding(BaseModel):
+    restrictions: list[RetrievalRestriction] = Field(default_factory=list)
+    deferred_plan_cues: list[DeferredPlanCue] = Field(default_factory=list)
     notes: list[str] = Field(default_factory=list)
 
 
 class AnchorGraph(BaseModel):
     nodes: list[TypedSemanticAnchor] = Field(default_factory=list)
     edges: list[AnchorRelation] = Field(default_factory=list)
+    restrictions: list[RetrievalRestriction] = Field(default_factory=list)
     root_anchor_ids: list[str] = Field(default_factory=list)
     connected_components: list[list[str]] = Field(default_factory=list)
     validation_warnings: list[str] = Field(default_factory=list)
@@ -216,8 +223,9 @@ class AnchorGraph(BaseModel):
 class RetrievalSpecification(BaseModel):
     specification_id: str
     anchor_ids: list[str] = Field(default_factory=list)
+    restriction_ids: list[str] = Field(default_factory=list)
     search_kind: Literal[
-        "path", "value_path_group", "type_compatible_path", "relationship", "structure", "none"
+        "entity_or_group", "field_path", "derived_support", "relationship"
     ]
     query_terms: list[str] = Field(default_factory=list)
     semantic_query: str
@@ -237,7 +245,8 @@ class AnchorBundle(BaseModel):
     normalized_question: NormalizedQuestion
     anchors: list[TypedSemanticAnchor] = Field(default_factory=list)
     relations: list[AnchorRelation] = Field(default_factory=list)
-    ambiguities: list[AnchorAmbiguity] = Field(default_factory=list)
+    restrictions: list[RetrievalRestriction] = Field(default_factory=list)
+    deferred_plan_cues: list[DeferredPlanCue] = Field(default_factory=list)
     retrieval_specifications: list[RetrievalSpecification] = Field(default_factory=list)
     coverage_score: float = Field(default=0, ge=0, le=1)
     ready_for_retrieval: bool = False
@@ -276,23 +285,23 @@ class AnchorRunView(BaseModel):
     model_id: str
     stages: list[AnchorStageTrace] = Field(default_factory=list)
     normalized_question: NormalizedQuestion | None = None
-    deterministic_extraction: DeterministicAnchorExtraction | None = None
-    semantic_extraction: SemanticAnchorExtraction | None = None
-    ambiguity_extraction: AmbiguityExtraction | None = None
-    anchor_graph: AnchorGraph | None = None
+    target_extraction: TargetExtraction | None = None
+    support_inference: SupportInference | None = None
+    restriction_binding: RestrictionBinding | None = None
+    retrieval_graph: AnchorGraph | None = None
     retrieval_specifications: RetrievalSpecificationSet | None = None
-    anchor_bundle: AnchorBundle | None = None
+    retrieval_bundle: AnchorBundle | None = None
     failure: str | None = None
 
 
 ANCHOR_STAGE_NAMES = [
     "normalization",
-    "deterministic_extraction",
-    "semantic_extraction",
-    "ambiguity_extraction",
-    "anchor_graph",
+    "target_extraction",
+    "support_inference",
+    "restriction_binding",
+    "retrieval_graph",
     "retrieval_specifications",
-    "anchor_bundle",
+    "retrieval_bundle",
 ]
 
 

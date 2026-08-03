@@ -18,8 +18,6 @@ from pydantic import BaseModel
 from .config import Settings
 from .contracts import (
     ANCHOR_STAGE_NAMES,
-    AmbiguityExtraction,
-    AnchorAmbiguity,
     AnchorBundle,
     AnchorGraph,
     AnchorKind,
@@ -30,14 +28,17 @@ from .contracts import (
     AnchorRunView,
     AnchorSource,
     AnchorStageTrace,
-    DeterministicAnchorExtraction,
+    DeferredPlanCue,
     NormalizationCue,
     NormalizedClause,
     NormalizedQuestion,
     NormalizedScalar,
+    RestrictionBinding,
+    RetrievalRestriction,
     RetrievalSpecification,
     RetrievalSpecificationSet,
-    SemanticAnchorExtraction,
+    SupportInference,
+    TargetExtraction,
     TypedSemanticAnchor,
     anchor_now,
 )
@@ -86,18 +87,8 @@ CUE_RULES = [
     CueRule(r"\b(?:more than|greater than|over)\b", "comparison", "GT"),
     CueRule(r"\b(?:less than|fewer than|under)\b", "comparison", "LT"),
     CueRule(r"\b(?:equal to|equals?|exactly)\b", "comparison", "EQ"),
-    CueRule(
-        r"\b(?:highest[- ]scoring|top[- ]scoring|highest|largest|most)\b",
-        "ranking",
-        "ARGMAX",
-        "morphology",
-    ),
-    CueRule(
-        r"\b(?:lowest[- ]scoring|lowest|smallest|least)\b",
-        "ranking",
-        "ARGMIN",
-        "morphology",
-    ),
+    CueRule(r"\b(?:highest[- ]scoring|top[- ]scoring|highest|largest|most)\b", "ranking", "ARGMAX", "morphology"),
+    CueRule(r"\b(?:lowest[- ]scoring|lowest|smallest|least)\b", "ranking", "ARGMIN", "morphology"),
     CueRule(r"\b(?:number of|how many|count of)\b", "aggregation", "COUNT"),
     CueRule(r"\b(?:total|sum of|combined)\b", "aggregation", "SUM"),
     CueRule(r"\b(?:average|mean)\b", "aggregation", "AVG"),
@@ -114,7 +105,7 @@ CUE_RULES = [
 
 
 class StructuredAnchorLLM:
-    """Small strict Chat Completions adapter used only for semantic enrichment."""
+    """Strict structured-output adapter used only for retrieval-concept enrichment."""
 
     def __init__(self, settings: Settings):
         self.settings = settings
@@ -133,7 +124,6 @@ class StructuredAnchorLLM:
     ) -> T:
         if not self.enabled:
             raise RuntimeError("The semantic model is not configured")
-        strict_schema = self._strict_schema(schema.model_json_schema())
         payload = {
             "model": self.settings.model,
             "messages": [
@@ -146,7 +136,7 @@ class StructuredAnchorLLM:
                 "json_schema": {
                     "name": schema_name,
                     "strict": True,
-                    "schema": strict_schema,
+                    "schema": self._strict_schema(schema.model_json_schema()),
                 },
             },
         }
@@ -176,7 +166,6 @@ class StructuredAnchorLLM:
 
     @classmethod
     def _strict_schema(cls, value: Any) -> Any:
-        """Apply the closed-object rules required by strict structured output."""
         if isinstance(value, list):
             return [cls._strict_schema(item) for item in value]
         if not isinstance(value, dict):
@@ -212,13 +201,6 @@ class QuestionNormalizer:
         ]
         scalars = self._scalars(normalized)
         cues = self._cues(normalized)
-        semantic_spans = self._semantic_spans(normalized)
-        notes = [
-            "Unicode, whitespace, and typography were normalized without paraphrasing the question.",
-            "Canonical cues are semantic evidence, not query-plan or schema commitments.",
-        ]
-        if any(item.scalar_type == "year" for item in scalars):
-            notes.append("Year-like values remain domain scalars until later evidence establishes time semantics.")
         return NormalizedQuestion(
             original_text=original,
             normalized_text=normalized,
@@ -227,8 +209,12 @@ class QuestionNormalizer:
             clauses=clauses,
             scalars=scalars,
             cues=cues,
-            semantic_spans=semantic_spans,
-            notes=notes,
+            semantic_spans=self._semantic_spans(normalized),
+            notes=[
+                "Normalization preserves the user's wording while exposing values and retrieval-relevant cues.",
+                "Operations are evidence for restrictions or supporting fields; they never become graph nodes.",
+                "Sorting, tie handling, and presentation cues are deferred beyond schema retrieval.",
+            ],
         )
 
     def _scalars(self, text: str) -> list[NormalizedScalar]:
@@ -295,7 +281,7 @@ class QuestionNormalizer:
         selected: list[tuple[int, int, CueRule, str]] = []
         for candidate in candidates:
             start, end, _, _ = candidate
-            if any(start < other_end and end > other_start for other_start, other_end, _, _ in selected):
+            if any(start < right and end > left for left, right, _, _ in selected):
                 continue
             selected.append(candidate)
         selected.sort(key=lambda item: item[0])
@@ -337,191 +323,146 @@ class QuestionNormalizer:
         return found
 
 
-class DeterministicAnchorExtractor:
-    def extract(self, normalized: NormalizedQuestion) -> DeterministicAnchorExtraction:
+def singular(value: str) -> str:
+    if value.endswith("ies"):
+        return value[:-3] + "y"
+    if value.endswith("s") and not value.endswith(("ss", "us")):
+        return value[:-1]
+    return value
+
+
+def tokens(value: str) -> set[str]:
+    normalized: set[str] = set()
+    replacements = {
+        "won": "win",
+        "winner": "win",
+        "winning": "win",
+        "scoring": "score",
+        "scored": "score",
+    }
+    stop = {"the", "a", "an", "of", "for", "that", "and", "to", "by", "each", "all"}
+    for token in re.findall(r"[a-z0-9]+", value.lower()):
+        if token in stop:
+            continue
+        normalized.add(replacements.get(token, singular(token)))
+    return normalized
+
+
+def expected_types(value: str) -> list[str]:
+    lowered = value.lower()
+    if any(token in lowered for token in ("name", "title", "label", "type", "status", "category")):
+        return ["string"]
+    if any(token in lowered for token in ("count", "number", "total", "points", "score", "amount", "price", "position", "rank")):
+        return ["int", "long", "double", "decimal"]
+    if any(token in lowered for token in ("date", "time", "year", "season")):
+        return ["date", "string", "int", "long"]
+    return []
+
+
+def aliases_for(value: str) -> list[str]:
+    lowered = value.lower()
+    aliases: list[str] = []
+    if "name" in lowered:
+        aliases.extend(["name", "full_name", "display name"])
+    if any(token in lowered for token in ("points", "score", "scoring")):
+        aliases.extend(["points", "score", "total points"])
+    if "podium" in lowered:
+        aliases.extend(["podium", "finishing position", "position", "rank"])
+    if any(token in lowered for token in ("win", "won", "winner")):
+        aliases.extend(["winner", "is_winner", "position", "finishing position"])
+    if any(token in lowered for token in ("season", "year")):
+        aliases.extend(["season", "year", "season_year"])
+    return list(dict.fromkeys(aliases))
+
+
+class RetrievalTargetExtractor:
+    """Extract only concepts that can become schema or path retrieval targets."""
+
+    ENTITY_STOPWORDS = {
+        "result", "results", "least", "most", "minimum", "maximum", "total", "number",
+        "one", "all", "each", "every", "season", "year", "name", "points", "score",
+        "for", "in", "on", "with", "from", "by", "than", "return", "show", "list",
+    }
+
+    def extract(self, normalized: NormalizedQuestion) -> TargetExtraction:
+        text = normalized.normalized_text
         anchors: list[TypedSemanticAnchor] = []
         relations: list[AnchorRelation] = []
+        by_key: dict[tuple[AnchorKind, str], TypedSemanticAnchor] = {}
 
         def add(
             kind: AnchorKind,
             surface: str,
             canonical: str,
             description: str,
-            role: str,
-            types: list[str],
-            start: int | None,
-            end: int | None,
             *,
-            confidence: float = 0.84,
-            alternatives: list[str] | None = None,
-            retrieval_required: bool = True,
+            role: str = "primary",
+            output_requested: bool = False,
+            parent_hints: list[str] | None = None,
+            derivation_hints: list[str] | None = None,
+            start: int | None = None,
+            end: int | None = None,
+            confidence: float = 0.86,
         ) -> TypedSemanticAnchor:
+            canonical = re.sub(r"\s+", " ", canonical.strip().lower())
+            key = (kind, canonical)
+            existing = by_key.get(key)
+            if existing:
+                existing.output_requested = existing.output_requested or output_requested
+                existing.parent_hints = list(dict.fromkeys([*existing.parent_hints, *(parent_hints or [])]))
+                existing.derivation_hints = list(
+                    dict.fromkeys([*existing.derivation_hints, *(derivation_hints or [])])
+                )
+                existing.confidence = max(existing.confidence, confidence)
+                return existing
             anchor = TypedSemanticAnchor(
-                anchor_id=f"d{len(anchors) + 1}",
+                anchor_id=f"t{len(anchors) + 1}",
                 kind=kind,
                 surface=surface,
                 canonical=canonical,
                 description=description,
-                semantic_role=role,
-                expected_bson_types=types,
+                retrieval_role=role,  # type: ignore[arg-type]
+                expected_bson_types=expected_types(canonical),
+                aliases=aliases_for(canonical),
+                parent_hints=parent_hints or [],
+                output_requested=output_requested,
+                derivation_hints=derivation_hints or [],
+                explicit=True,
                 source=AnchorSource.RULE,
                 start=start,
                 end=end,
                 confidence=confidence,
-                alternatives=alternatives or [],
-                retrieval_required=retrieval_required,
             )
             anchors.append(anchor)
+            by_key[key] = anchor
             return anchor
 
-        for scalar in normalized.scalars:
-            temporal = scalar.scalar_type in {"year", "date"} or any(
-                token in scalar.context for token in ("season", "year", "date", "month")
-            )
-            stored = scalar.scalar_type == "string"
-            kind = AnchorKind.STORED_LITERAL if stored else (
-                AnchorKind.TEMPORAL if temporal else AnchorKind.QUERY_CONSTANT
-            )
-            add(
-                kind,
-                scalar.surface,
-                str(scalar.normalized),
-                f"Explicit {scalar.scalar_type} scalar in context: {scalar.context}",
-                "stored_literal" if stored else ("temporal_filter" if temporal else "constraint_value"),
-                ["string"] if stored else (
-                    ["date", "string", "int", "long"] if temporal else ["int", "long", "double", "decimal"]
-                ),
-                scalar.start,
-                scalar.end,
-                confidence=0.99,
-                retrieval_required=stored or temporal,
-            )
-
-        cue_kind = {
-            "comparison": AnchorKind.COMPARISON,
-            "ranking": AnchorKind.OPERATION,
-            "aggregation": AnchorKind.OPERATION,
-            "grouping": AnchorKind.GROUPING,
-            "sorting": AnchorKind.SORT,
-            "tie_policy": AnchorKind.TIE_POLICY,
-            "output": AnchorKind.OPERATION,
-            "negation": AnchorKind.NEGATION,
-            "quantifier": AnchorKind.QUANTIFIER,
-        }
-        cue_anchors: dict[str, list[TypedSemanticAnchor]] = defaultdict(list)
-        for cue in normalized.cues:
-            anchor = add(
-                cue_kind[cue.category],
-                cue.surface,
-                cue.canonical,
-                f"Canonical {cue.category} cue scoped by: {cue.scope_hint}",
-                cue.category,
-                [],
-                cue.start,
-                cue.end,
-                confidence=0.98 if cue.source == "phrase_rule" else 0.91,
-                retrieval_required=False,
-            )
-            cue_anchors[cue.canonical].append(anchor)
-
-        entity_anchors = self._entities(normalized.normalized_text, add)
-        output_anchors = self._outputs(normalized.normalized_text, add)
-        measure_anchors = self._measures(normalized.normalized_text, add)
-        relationship_anchors = self._relationships(normalized.normalized_text, add)
-
-        def relate(source: TypedSemanticAnchor, target: TypedSemanticAnchor, kind: str, text: str) -> None:
-            key = (source.anchor_id, target.anchor_id, kind)
-            if any((item.source_anchor_id, item.target_anchor_id, item.relation_type) == key for item in relations):
-                return
-            relations.append(
-                AnchorRelation(
-                    relation_id=f"dr{len(relations) + 1}",
-                    source_anchor_id=source.anchor_id,
-                    target_anchor_id=target.anchor_id,
-                    relation_type=kind,  # type: ignore[arg-type]
-                    description=text,
-                    confidence=0.84,
-                    source=AnchorSource.INFERRED,
-                )
-            )
-
-        constants = [item for item in anchors if item.kind in {AnchorKind.QUERY_CONSTANT, AnchorKind.STORED_LITERAL, AnchorKind.TEMPORAL}]
-        for comparison in [item for item in anchors if item.kind == AnchorKind.COMPARISON]:
-            target = self._nearest(comparison, constants)
-            if target:
-                relate(comparison, target, "compares_to", "Comparison applies to the nearest explicit scalar.")
-        groups = cue_anchors.get("PARTITION", [])
-        if groups and entity_anchors:
-            target = self._nearest(groups[0], entity_anchors)
-            if target:
-                relate(groups[0], target, "partitioned_by", "The operation is partitioned by this entity.")
-        rankings = [*cue_anchors.get("ARGMAX", []), *cue_anchors.get("ARGMIN", [])]
-        if rankings and measure_anchors:
-            target = self._nearest(rankings[0], measure_anchors)
-            if target:
-                relate(rankings[0], target, "ranked_by", "Ranking uses this measure.")
-        for canonical in ("SUM", "AVG", "MIN", "MAX", "COUNT"):
-            for operation in cue_anchors.get(canonical, []):
-                target = self._nearest(operation, measure_anchors)
-                if target:
-                    relate(operation, target, "aggregates", "Aggregation applies to this measure.")
-        for sort_anchor in [item for item in anchors if item.kind == AnchorKind.SORT]:
-            target = self._nearest(sort_anchor, measure_anchors)
-            if target:
-                relate(sort_anchor, target, "sorted_by", "Final ordering uses this measure.")
-        if cue_anchors.get("KEEP_ALL_TIES") and rankings:
-            relate(cue_anchors["KEEP_ALL_TIES"][0], rankings[0], "modifies", "Tie policy modifies ranking.")
-        for relationship in relationship_anchors:
-            for entity in sorted(entity_anchors, key=lambda item: self._distance(relationship, item))[:2]:
-                relate(relationship, entity, "related_to", "Relationship connects the nearby entity concept.")
-        for output in output_anchors:
-            target = self._best_lexical_target(output, [*entity_anchors, *measure_anchors])
-            if target:
-                relate(target, output, "outputs", "This concept is explicitly requested in the result.")
-
-        return DeterministicAnchorExtraction(
-            anchors=anchors,
-            relations=relations,
-            unresolved_phrases=normalized.semantic_spans,
-            notes=[
-                "Rules cover closed-vocabulary operators, explicit values, result phrases, and conservative semantic candidates.",
-                "Unresolved phrases are forwarded intact to semantic extraction.",
-            ],
-        )
-
-    def _entities(self, text: str, add: Callable[..., TypedSemanticAnchor]) -> list[TypedSemanticAnchor]:
-        candidates: list[tuple[str, int, int, str]] = []
-        patterns = [
-            (r"\b(?:for each|per|for every)\s+([A-Za-z][\w-]*)", "group_entity"),
-            (r"\b(?:highest[- ]scoring|lowest[- ]scoring|top[- ]scoring|highest|lowest)\s+([A-Za-z][\w-]*)", "ranked_entity"),
-            (r"\b([A-Za-z][\w-]*)\s+(?:that|which|who)\s+", "constrained_entity"),
-            (r"\b(?:one|a|an|any|each|every)\s+([A-Za-z][\w-]*)\b", "related_entity"),
+        entity_patterns = [
+            (r"\b(?:for each|per|for every)\s+([A-Za-z][\w-]*)", "grouping context"),
+            (r"\b(?:highest[- ]scoring|lowest[- ]scoring|top[- ]scoring|highest|lowest)\s+([A-Za-z][\w-]*)", "ranked result entity"),
+            (r"\b([A-Za-z][\w-]*)\s+(?:that|which|who)\s+", "constrained entity"),
+            (r"\b([A-Za-z][\w-]*)['’]s\s+(?:full\s+)?(?:name|title|id|score|status)", "field owner"),
         ]
-        stop = {"least", "most", "minimum", "maximum", "total", "number", "result"}
-        for pattern, role in patterns:
+        entities: list[TypedSemanticAnchor] = []
+        for pattern, evidence in entity_patterns:
             for match in re.finditer(pattern, text, re.I):
                 surface = match.group(1)
-                canonical = self._singular(surface.lower())
-                if canonical in stop or any(item[0].lower() == canonical for item in candidates):
+                canonical = singular(surface.lower())
+                if canonical in self.ENTITY_STOPWORDS:
                     continue
-                candidates.append((surface, match.start(1), match.end(1), role))
-        return [
-            add(
-                AnchorKind.ENTITY,
-                surface,
-                self._singular(surface.lower()),
-                f"Entity candidate explicitly used as a {role.replace('_', ' ')}.",
-                role,
-                [],
-                start,
-                end,
-                confidence=0.82,
-            )
-            for surface, start, end, role in candidates
-        ]
+                entities.append(
+                    add(
+                        AnchorKind.ENTITY,
+                        surface,
+                        canonical,
+                        f"Schema entity or containing object indicated by the {evidence}.",
+                        start=match.start(1),
+                        end=match.end(1),
+                        confidence=0.9 if evidence == "field owner" else 0.86,
+                    )
+                )
 
-    def _outputs(self, text: str, add: Callable[..., TypedSemanticAnchor]) -> list[TypedSemanticAnchor]:
-        outputs: list[TypedSemanticAnchor] = []
+        output_parts: list[tuple[str, int]] = []
         for match in re.finditer(r"\b(?:return|show|list|display|give)\s+(.+?)(?=\.(?:\s|$)|$)", text, re.I):
             body = match.group(1).strip()
             if body.lower().startswith(("all tied", "the result", "results")):
@@ -534,161 +475,182 @@ class DeterministicAnchorExtractor:
                 start = text.lower().find(surface.lower(), cursor)
                 start = match.start(1) if start < 0 else start
                 cursor = start + len(surface)
-                canonical = re.sub(r"^(?:the|a|an)\s+", "", surface.lower())
-                canonical = re.sub(r"([a-z])'s\b", r"\1", canonical)
-                outputs.append(
+                output_parts.append((surface, start))
+
+        for surface, start in output_parts:
+            lowered = re.sub(r"^(?:the|a|an)\s+", "", surface.lower())
+            owner_match = re.match(r"([a-z][\w-]*)['’]s\s+(.+)", lowered)
+            parent_hints: list[str] = []
+            if owner_match:
+                owner = singular(owner_match.group(1))
+                parent_hints.append(owner)
+                lowered = f"{owner} {owner_match.group(2)}"
+                entities.append(
                     add(
-                        AnchorKind.OUTPUT,
-                        surface,
-                        canonical,
-                        f"Requested result field or derived value: {surface}",
-                        "requested_output",
-                        self._types(canonical),
-                        start,
-                        start + len(surface),
-                        confidence=0.91,
+                        AnchorKind.ENTITY,
+                        owner_match.group(1),
+                        owner,
+                        "Entity owning an explicitly requested field.",
+                        start=start,
+                        end=start + len(owner_match.group(1)),
+                        confidence=0.92,
                     )
                 )
-        return outputs
+            for entity in entities:
+                if entity.canonical in lowered and entity.canonical not in parent_hints:
+                    parent_hints.append(entity.canonical)
+            contextual_parent = re.search(r"\bfor\s+(?:that|the|each)\s+([a-z][\w-]*)", lowered)
+            if contextual_parent:
+                parent_hints.append(singular(contextual_parent.group(1)))
 
-    def _measures(self, text: str, add: Callable[..., TypedSemanticAnchor]) -> list[TypedSemanticAnchor]:
-        measures: list[TypedSemanticAnchor] = []
-        patterns = [
-            (r"\b(?:total|sum of)\s+[A-Za-z][A-Za-z -]*?(?=\s+earned|,|\.|\band\b|$)", "sum_measure"),
-            (r"\b(?:number of|count of)\s+[A-Za-z][A-Za-z -]*?(?=,|\.|\band\b|$)", "count_measure"),
-            (r"\b(?:average|mean)\s+[A-Za-z][A-Za-z -]*?(?=,|\.|\band\b|$)", "average_measure"),
-            (r"\b[A-Za-z][\w-]*\s+(?:score|points?|amount|salary|price|revenue|duration|count)\b", "measure"),
-        ]
-        for pattern, role in patterns:
-            for match in re.finditer(pattern, text, re.I):
-                surface = match.group(0).strip()
-                canonical = surface.lower()
-                if any(item.canonical == canonical for item in measures):
-                    continue
-                measures.append(
-                    add(
-                        AnchorKind.MEASURE,
-                        surface,
-                        canonical,
-                        "Numeric or aggregatable semantic measure.",
-                        role,
-                        ["int", "long", "double", "decimal"],
-                        match.start(),
-                        match.end(),
-                        confidence=0.87,
-                        alternatives=["stored aggregate", "computed from lower-level records"],
-                    )
-                )
-        return measures
-
-    def _relationships(self, text: str, add: Callable[..., TypedSemanticAnchor]) -> list[TypedSemanticAnchor]:
-        values: list[TypedSemanticAnchor] = []
-        for match in re.finditer(r"\b(?:that|which|who)\s+(.+?)(?=,|\.|$)", text, re.I):
-            surface = match.group(0).strip()
-            values.append(
-                add(
-                    AnchorKind.RELATIONSHIP,
-                    surface,
-                    match.group(1).strip().lower(),
-                    "Relative-clause relationship or eligibility condition.",
-                    "relationship_constraint",
-                    [],
-                    match.start(),
-                    match.end(),
-                    confidence=0.79,
-                )
+            derived = bool(re.search(r"\b(?:number of|count of)\b", lowered)) or "podium" in lowered
+            canonical = re.sub(r"^(?:total|sum of|number of|count of|average)\s+", "", lowered)
+            canonical = re.sub(r"\s+earned\s+for\s+.+$", "", canonical)
+            canonical = re.sub(r"\s+", " ", canonical).strip()
+            derivation_hints: list[str] = []
+            if re.search(r"\b(?:total|sum of)\b", lowered):
+                derivation_hints.append("May be stored directly or summed from lower-level records.")
+            if re.search(r"\b(?:number of|count of)\b", lowered):
+                derivation_hints.append("Requires countable records or a stored count field.")
+            if "podium" in lowered:
+                derivation_hints.append("Can be derived from finishing position when no podium field exists.")
+            target = add(
+                AnchorKind.DERIVED_CONCEPT if derived else AnchorKind.FIELD,
+                surface,
+                canonical,
+                "Requested result concept to ground to a schema path or supporting evidence.",
+                output_requested=True,
+                parent_hints=list(dict.fromkeys(parent_hints)),
+                derivation_hints=derivation_hints,
+                start=start,
+                end=start + len(surface),
+                confidence=0.94,
             )
-        return values
+
+            for entity in entities:
+                if entity.canonical in target.parent_hints:
+                    relations.append(
+                        AnchorRelation(
+                            relation_id=f"tr{len(relations) + 1}",
+                            source_anchor_id=target.anchor_id,
+                            target_anchor_id=entity.anchor_id,
+                            relation_type="belongs_to",
+                            description=f"{target.canonical} should be retrieved in {entity.canonical} context.",
+                            confidence=0.9,
+                            source=AnchorSource.RULE,
+                        )
+                    )
+
+        deferred: list[DeferredPlanCue] = []
+        for cue in normalized.cues:
+            kind = "sorting" if cue.category == "sorting" else (
+                "tie_policy" if cue.category == "tie_policy" else None
+            )
+            if kind:
+                deferred.append(
+                    DeferredPlanCue(
+                        cue_id=f"deferred_{len(deferred) + 1}",
+                        surface=cue.surface,
+                        kind=kind,  # type: ignore[arg-type]
+                        canonical=cue.canonical,
+                        reason="This affects final query execution, not which schema paths should be retrieved.",
+                        start=cue.start,
+                        end=cue.end,
+                    )
+                )
+
+        covered = " ".join(anchor.surface.lower() for anchor in anchors)
+        unresolved = [span for span in normalized.semantic_spans if span.lower() not in covered]
+        return TargetExtraction(
+            anchors=anchors,
+            relations=self._dedupe_relations(relations),
+            unresolved_phrases=unresolved,
+            deferred_plan_cues=deferred,
+            notes=[
+                "Only entities, requested fields, and requested derived concepts become retrieval targets.",
+                "Operators and constants are intentionally excluded from the target set.",
+            ],
+        )
 
     @staticmethod
-    def _types(text: str) -> list[str]:
-        if any(token in text for token in ("name", "title", "label", "type", "status")):
-            return ["string"]
-        if any(token in text for token in ("count", "number", "total", "points", "score", "amount", "price")):
-            return ["int", "long", "double", "decimal"]
-        if any(token in text for token in ("date", "time", "year", "season")):
-            return ["date", "string", "int", "long"]
-        return []
-
-    @staticmethod
-    def _singular(value: str) -> str:
-        return value[:-3] + "y" if value.endswith("ies") else (value[:-1] if value.endswith("s") and not value.endswith("ss") else value)
-
-    @staticmethod
-    def _distance(left: TypedSemanticAnchor, right: TypedSemanticAnchor) -> int:
-        return abs((left.start or 0) - (right.start or 0))
-
-    def _nearest(self, source: TypedSemanticAnchor, values: list[TypedSemanticAnchor]) -> TypedSemanticAnchor | None:
-        return min(values, key=lambda item: self._distance(source, item)) if values else None
-
-    @staticmethod
-    def _best_lexical_target(source: TypedSemanticAnchor, values: list[TypedSemanticAnchor]) -> TypedSemanticAnchor | None:
-        source_tokens = set(re.findall(r"[a-z]+", source.canonical)) - {
-            "the", "a", "an", "name", "full", "total", "number", "of", "for", "that", "earned"
-        }
-        ranked = [
-            (len(source_tokens & set(re.findall(r"[a-z]+", item.canonical))), item)
-            for item in values
-        ]
-        ranked = [item for item in ranked if item[0] > 0]
-        return max(ranked, key=lambda item: item[0])[1] if ranked else None
+    def _dedupe_relations(relations: list[AnchorRelation]) -> list[AnchorRelation]:
+        seen: set[tuple[str, str, str]] = set()
+        result: list[AnchorRelation] = []
+        for relation in relations:
+            key = (relation.source_anchor_id, relation.target_anchor_id, relation.relation_type)
+            if key in seen:
+                continue
+            seen.add(key)
+            relation.relation_id = f"tr{len(result) + 1}"
+            result.append(relation)
+        return result
 
 
-class SemanticAnchorExtractor:
+class SupportingFieldInferer:
     def __init__(self, llm: StructuredAnchorLLM):
         self.llm = llm
 
-    def extract(
+    def infer(
         self,
         normalized: NormalizedQuestion,
-        deterministic: DeterministicAnchorExtraction,
+        targets: TargetExtraction,
         *,
         use_llm: bool,
         fallback_on_error: bool,
-    ) -> SemanticAnchorExtraction:
+    ) -> SupportInference:
         if use_llm and self.llm.enabled:
             try:
                 result = self.llm.parse(
-                    schema=SemanticAnchorExtraction,
-                    schema_name="typed_semantic_anchors",
+                    schema=SupportInference,
+                    schema_name="retrieval_support_concepts",
                     instructions=(
-                        "Extract schema-independent typed semantic anchors. Return only the strict structured object. "
-                        "Never select collections, fields, paths, stored values, MongoDB operators, or a query plan. "
-                        "Create s1, s2, ... anchors for entities, attributes, measures, outputs, relationships, stored "
-                        "literal mentions, and implicit scope. Preserve exact spans for explicit anchors and mark inferred "
-                        "anchors explicit=false. Add sr1, sr2, ... relations, including useful links to supplied d-ids. "
-                        "Retain stored-versus-computed alternatives instead of resolving them. Use source='llm'."
+                        "Infer only schema-retrieval concepts. Add missing entities or requested fields when the rule "
+                        "pass missed them, and add supporting fields needed to filter or derive requested results. "
+                        "Allowed node kinds are entity, field, and derived_concept. Never create operation, grouping, "
+                        "comparison, sorting, aggregation, constant, temporal-value, output-slot, or query-plan nodes. "
+                        "Operations may only justify a supporting field: for example, 'won' suggests winner/position; "
+                        "'podium finishes' suggests finishing position; a year suggests a season/year field. Connect "
+                        "concepts only with belongs_to, requires_connection, scoped_with, supports, or derived_from. "
+                        "Use supplied t-ids when linking existing targets and source='llm'. Return the strict object."
                     ),
                     user_input=json.dumps(
                         {
                             "question": normalized.original_text,
                             "normalized": normalized.model_dump(mode="json"),
-                            "deterministic": deterministic.model_dump(mode="json"),
+                            "retrieval_targets": targets.model_dump(mode="json"),
                         },
                         ensure_ascii=False,
                     ),
                 )
-                return self._sanitize(result, normalized.original_text, deterministic)
+                return self._sanitize(result, normalized.original_text, targets)
             except Exception as error:
                 if not fallback_on_error:
                     raise
-                result = self._fallback(normalized, deterministic)
+                result = self._fallback(normalized, targets)
                 result.notes.insert(
                     0,
-                    f"Semantic model unavailable ({type(error).__name__}); auto mode used deterministic enrichment.",
+                    f"Semantic model unavailable ({type(error).__name__}); auto mode used deterministic support inference.",
                 )
                 return result
-        return self._fallback(normalized, deterministic)
+        return self._fallback(normalized, targets)
 
     def _sanitize(
         self,
-        result: SemanticAnchorExtraction,
+        result: SupportInference,
         question: str,
-        deterministic: DeterministicAnchorExtraction,
-    ) -> SemanticAnchorExtraction:
-        semantic_ids: set[str] = set()
-        for index, anchor in enumerate(result.anchors, start=1):
-            anchor.anchor_id = f"s{index}"
+        targets: TargetExtraction,
+    ) -> SupportInference:
+        existing = {(item.kind, item.canonical.lower()): item.anchor_id for item in targets.anchors}
+        remap: dict[str, str] = {}
+        clean_anchors: list[TypedSemanticAnchor] = []
+        for anchor in result.anchors:
+            original_id = anchor.anchor_id
+            duplicate = existing.get((anchor.kind, anchor.canonical.lower()))
+            if duplicate:
+                remap[original_id] = duplicate
+                continue
+            anchor.anchor_id = f"s{len(clean_anchors) + 1}"
+            remap[original_id] = anchor.anchor_id
             anchor.source = AnchorSource.LLM
             if anchor.explicit:
                 start = question.lower().find(anchor.surface.lower())
@@ -699,263 +661,493 @@ class SemanticAnchorExtractor:
                     anchor.explicit = False
                     anchor.start = None
                     anchor.end = None
-            semantic_ids.add(anchor.anchor_id)
-        allowed = semantic_ids | {item.anchor_id for item in deterministic.anchors}
-        clean: list[AnchorRelation] = []
+            clean_anchors.append(anchor)
+            existing[(anchor.kind, anchor.canonical.lower())] = anchor.anchor_id
+
+        allowed = {item.anchor_id for item in targets.anchors} | {
+            item.anchor_id for item in clean_anchors
+        }
+        clean_relations: list[AnchorRelation] = []
+        seen: set[tuple[str, str, str]] = set()
         for relation in result.relations:
-            if relation.source_anchor_id in allowed and relation.target_anchor_id in allowed:
-                relation.relation_id = f"sr{len(clean) + 1}"
-                relation.source = AnchorSource.LLM
-                clean.append(relation)
-        result.relations = clean
+            source = remap.get(relation.source_anchor_id, relation.source_anchor_id)
+            target = remap.get(relation.target_anchor_id, relation.target_anchor_id)
+            key = (source, target, relation.relation_type)
+            if source == target or source not in allowed or target not in allowed or key in seen:
+                continue
+            seen.add(key)
+            relation.relation_id = f"sr{len(clean_relations) + 1}"
+            relation.source_anchor_id = source
+            relation.target_anchor_id = target
+            relation.source = AnchorSource.LLM
+            clean_relations.append(relation)
+        result.anchors = clean_anchors
+        result.relations = clean_relations
+        result.notes.append("Plan-like nodes returned by the model are impossible under the closed target schema.")
         return result
 
     def _fallback(
         self,
         normalized: NormalizedQuestion,
-        deterministic: DeterministicAnchorExtraction,
-    ) -> SemanticAnchorExtraction:
+        targets: TargetExtraction,
+    ) -> SupportInference:
+        text = normalized.normalized_text
         anchors: list[TypedSemanticAnchor] = []
         relations: list[AnchorRelation] = []
+        base = list(targets.anchors)
+        by_key = {(item.kind, item.canonical): item for item in base}
 
-        def add_from(item: TypedSemanticAnchor, kind: AnchorKind, role: str) -> TypedSemanticAnchor:
+        def add(
+            kind: AnchorKind,
+            surface: str,
+            canonical: str,
+            description: str,
+            *,
+            parent_hints: list[str] | None = None,
+            types: list[str] | None = None,
+            aliases: list[str] | None = None,
+            derivation_hints: list[str] | None = None,
+            explicit: bool = True,
+            confidence: float = 0.82,
+        ) -> TypedSemanticAnchor:
+            key = (kind, canonical)
+            if key in by_key:
+                return by_key[key]
+            start = text.lower().find(surface.lower()) if explicit else -1
             anchor = TypedSemanticAnchor(
                 anchor_id=f"s{len(anchors) + 1}",
                 kind=kind,
-                surface=item.surface,
-                canonical=item.canonical,
-                description=f"Semantic concept underlying: {item.surface}",
-                semantic_role=role,
-                expected_bson_types=item.expected_bson_types,
-                explicit=item.explicit,
+                surface=surface,
+                canonical=canonical,
+                description=description,
+                retrieval_role="supporting",
+                expected_bson_types=types if types is not None else expected_types(canonical),
+                aliases=list(dict.fromkeys(aliases if aliases is not None else aliases_for(canonical))),
+                parent_hints=parent_hints or [],
+                output_requested=False,
+                derivation_hints=derivation_hints or [],
+                explicit=explicit and start >= 0,
                 source=AnchorSource.INFERRED,
-                start=item.start,
-                end=item.end,
-                confidence=max(0.68, item.confidence - 0.12),
-                alternatives=item.alternatives,
-                retrieval_required=True,
+                start=start if explicit and start >= 0 else None,
+                end=start + len(surface) if explicit and start >= 0 else None,
+                confidence=confidence,
             )
             anchors.append(anchor)
+            by_key[key] = anchor
             return anchor
 
-        for item in deterministic.anchors:
-            if item.kind in {AnchorKind.ENTITY, AnchorKind.RELATIONSHIP, AnchorKind.STORED_LITERAL}:
-                add_from(item, item.kind, item.semantic_role)
-            elif item.kind == AnchorKind.OUTPUT:
-                kind = AnchorKind.MEASURE if any(
-                    token in item.canonical for token in ("total", "number", "count", "score", "points", "average")
-                ) else AnchorKind.ATTRIBUTE
-                concept = add_from(
-                    item,
-                    kind,
-                    "result_measure" if kind == AnchorKind.MEASURE else "result_attribute",
+        def relate(source: TypedSemanticAnchor, target: TypedSemanticAnchor, kind: str, description: str, confidence: float = 0.82) -> None:
+            key = (source.anchor_id, target.anchor_id, kind)
+            if source.anchor_id == target.anchor_id or any(
+                (item.source_anchor_id, item.target_anchor_id, item.relation_type) == key
+                for item in [*targets.relations, *relations]
+            ):
+                return
+            relations.append(
+                AnchorRelation(
+                    relation_id=f"sr{len(relations) + 1}",
+                    source_anchor_id=source.anchor_id,
+                    target_anchor_id=target.anchor_id,
+                    relation_type=kind,  # type: ignore[arg-type]
+                    description=description,
+                    confidence=confidence,
+                    source=AnchorSource.INFERRED,
                 )
-                relations.append(
-                    AnchorRelation(
-                        relation_id=f"sr{len(relations) + 1}",
-                        source_anchor_id=concept.anchor_id,
-                        target_anchor_id=item.anchor_id,
-                        relation_type="outputs",
-                        description="The semantic concept realizes this requested output.",
-                        confidence=0.82,
-                        source=AnchorSource.INFERRED,
-                    )
-                )
-        entities = [item for item in anchors if item.kind == AnchorKind.ENTITY]
-        measures = [item for item in anchors if item.kind == AnchorKind.MEASURE]
-        for measure in measures:
-            for entity in entities[:2]:
-                relations.append(
-                    AnchorRelation(
-                        relation_id=f"sr{len(relations) + 1}",
-                        source_anchor_id=measure.anchor_id,
-                        target_anchor_id=entity.anchor_id,
-                        relation_type="same_scope",
-                        description="The measure may be scoped to this query entity.",
-                        confidence=0.68,
-                        source=AnchorSource.INFERRED,
-                    )
-                )
-        return SemanticAnchorExtraction(
+            )
+
+        entity_by_name = {
+            item.canonical: item for item in base if item.kind == AnchorKind.ENTITY
+        }
+        if re.search(r"\brace(?:s)?\b", text, re.I):
+            race = add(
+                AnchorKind.ENTITY,
+                "race",
+                "race",
+                "Event entity required by the eligibility condition.",
+                confidence=0.86,
+            )
+            entity_by_name["race"] = race
+
+        season_field: TypedSemanticAnchor | None = None
+        if any(item.scalar_type in {"year", "date"} for item in normalized.scalars) or re.search(r"\bseason\b", text, re.I):
+            season_field = add(
+                AnchorKind.FIELD,
+                "season" if "season" in text.lower() else "year",
+                "season year",
+                "Field needed to attach the temporal value to stored records.",
+                parent_hints=["race"],
+                types=["date", "string", "int", "long"],
+                aliases=["season", "year", "season_year"],
+                confidence=0.9,
+            )
+            if "race" in entity_by_name:
+                relate(season_field, entity_by_name["race"], "belongs_to", "Season/year is expected in race or event context.")
+
+        outcome: TypedSemanticAnchor | None = None
+        if re.search(r"\b(?:won|win|winner|victory)\b", text, re.I):
+            outcome = add(
+                AnchorKind.FIELD,
+                "won" if "won" in text.lower() else "winner",
+                "race outcome",
+                "Supporting field needed to determine whether an entity won an event.",
+                parent_hints=["race", "race result"],
+                types=["bool", "int", "long", "string"],
+                aliases=["winner", "is_winner", "winning position", "finishing position", "position"],
+                derivation_hints=["May be a winner flag or be inferred from finishing position equal to one."],
+                confidence=0.9,
+            )
+            if "race" in entity_by_name:
+                relate(outcome, entity_by_name["race"], "belongs_to", "Race outcome belongs to an event or result record.")
+
+        podium_targets = [item for item in base if "podium" in item.canonical]
+        position: TypedSemanticAnchor | None = None
+        if podium_targets:
+            position = add(
+                AnchorKind.FIELD,
+                "podium finishes",
+                "finishing position",
+                "Supporting field from which podium membership can be derived.",
+                parent_hints=["race", "race result", "driver"],
+                types=["int", "long"],
+                aliases=["position", "rank", "finish_position", "finishing order"],
+                derivation_hints=["A podium finish is commonly represented by position less than or equal to three."],
+                confidence=0.91,
+            )
+            for target in podium_targets:
+                relate(position, target, "supports", "Finishing position supplies evidence for the requested podium concept.", 0.94)
+            if "race" in entity_by_name:
+                relate(position, entity_by_name["race"], "belongs_to", "Finishing position is recorded per race result.")
+
+        all_targets = [*base, *anchors]
+        entities = [item for item in all_targets if item.kind == AnchorKind.ENTITY]
+        for item in all_targets:
+            if item.kind == AnchorKind.ENTITY:
+                continue
+            for parent in item.parent_hints:
+                parent_tokens = tokens(parent)
+                candidates = [entity for entity in entities if tokens(entity.canonical) & parent_tokens]
+                if candidates:
+                    relate(item, candidates[0], "belongs_to", f"{item.canonical} is retrieved under {candidates[0].canonical} context.")
+
+        driver = next((item for item in entities if item.canonical == "driver"), None)
+        constructor = next((item for item in entities if item.canonical == "constructor"), None)
+        race = next((item for item in entities if item.canonical == "race"), None)
+        if driver and constructor:
+            relate(driver, constructor, "requires_connection", "The question requires driver evidence scoped to a constructor.", 0.92)
+        if constructor and race and outcome:
+            relate(constructor, race, "requires_connection", "Winning eligibility connects the constructor to race results.", 0.9)
+        if driver and race and (position or outcome):
+            relate(driver, race, "requires_connection", "Driver measures require race-result evidence.", 0.86)
+        if season_field and constructor:
+            relate(season_field, constructor, "scoped_with", "The temporal scope also constrains constructor results.", 0.76)
+
+        return SupportInference(
             anchors=anchors,
             relations=relations,
             notes=[
-                "Deterministic semantic enrichment was used; no schema or database was inspected.",
-                "Output concepts remain distinct from their requested output slots.",
+                "Supporting fields are inferred only when a filter or requested derived concept needs schema evidence.",
+                "No operation, comparison, grouping, sorting, or constant node is produced.",
             ],
         )
 
 
-class AmbiguityExtractor:
-    def __init__(self, llm: StructuredAnchorLLM):
-        self.llm = llm
+class RestrictionBinder:
+    """Turn values and operation language into metadata on retrieval targets."""
 
-    def extract(
+    def bind(
         self,
         normalized: NormalizedQuestion,
-        deterministic: DeterministicAnchorExtraction,
-        semantic: SemanticAnchorExtraction,
-        *,
-        use_llm: bool,
-        fallback_on_error: bool,
-    ) -> AmbiguityExtraction:
-        if use_llm and self.llm.enabled:
-            try:
-                result = self.llm.parse(
-                    schema=AmbiguityExtraction,
-                    schema_name="anchor_ambiguities",
-                    instructions=(
-                        "Identify only material schema-independent ambiguities in attachment, coreference, scope, "
-                        "measure identity, operator meaning, lexical reading, or physical realization. Return only "
-                        "the structured object. Use supplied anchor ids. Recommend the grammatically strongest reading "
-                        "but preserve alternatives. Do not invent paths and do not call storage alternatives blocking."
-                    ),
-                    user_input=json.dumps(
-                        {
-                            "question": normalized.original_text,
-                            "deterministic": deterministic.model_dump(mode="json"),
-                            "semantic": semantic.model_dump(mode="json"),
-                        },
-                        ensure_ascii=False,
-                    ),
-                )
-                allowed = {item.anchor_id for item in [*deterministic.anchors, *semantic.anchors]}
-                for index, item in enumerate(result.ambiguities, start=1):
-                    item.ambiguity_id = f"ambiguity_{index}"
-                    item.anchor_ids = [value for value in item.anchor_ids if value in allowed]
-                return result
-            except Exception as error:
-                if not fallback_on_error:
-                    raise
-                result = self._fallback(normalized, deterministic, semantic)
-                result.notes.insert(
-                    0,
-                    f"Ambiguity model unavailable ({type(error).__name__}); auto mode used deterministic checks.",
-                )
-                return result
-        return self._fallback(normalized, deterministic, semantic)
-
-    def _fallback(
-        self,
-        normalized: NormalizedQuestion,
-        deterministic: DeterministicAnchorExtraction,
-        semantic: SemanticAnchorExtraction,
-    ) -> AmbiguityExtraction:
-        text = normalized.normalized_text
-        anchors = [*deterministic.anchors, *semantic.anchors]
-        entity_ids = [item.anchor_id for item in anchors if item.kind == AnchorKind.ENTITY]
-        ambiguities: list[AnchorAmbiguity] = []
+        targets: TargetExtraction,
+        support: SupportInference,
+    ) -> RestrictionBinding:
+        anchors = [*targets.anchors, *support.anchors]
+        restrictions: list[RetrievalRestriction] = []
 
         def add(
-            label: str,
             kind: str,
-            ids: list[str],
-            interpretations: list[str],
-            recommendation: str,
-            reason: str,
-            confidence: float,
-        ) -> None:
-            ambiguities.append(
-                AnchorAmbiguity(
-                    ambiguity_id=f"ambiguity_{len(ambiguities) + 1}",
-                    text=label,
-                    ambiguity_type=kind,  # type: ignore[arg-type]
-                    anchor_ids=ids,
-                    interpretations=interpretations,
-                    recommended_interpretation=recommendation,
-                    reason=reason,
-                    blocking=False,
-                    confidence=confidence,
-                )
+            surface: str,
+            canonical: str,
+            description: str,
+            anchor_ids: list[str],
+            effect: str,
+            *,
+            operator: str | None = None,
+            value: str | int | float | bool | None = None,
+            start: int | None = None,
+            end: int | None = None,
+            confidence: float = 0.88,
+        ) -> RetrievalRestriction:
+            restriction = RetrievalRestriction(
+                restriction_id=f"restriction_{len(restrictions) + 1}",
+                kind=kind,  # type: ignore[arg-type]
+                surface=surface,
+                canonical=canonical,
+                description=description,
+                anchor_ids=list(dict.fromkeys(anchor_ids)),
+                operator=operator,
+                normalized_value=value,
+                retrieval_effect=effect,  # type: ignore[arg-type]
+                source=AnchorSource.RULE,
+                start=start,
+                end=end,
+                confidence=confidence,
+            )
+            restrictions.append(restriction)
+            return restriction
+
+        comparison_cues = [cue for cue in normalized.cues if cue.category == "comparison"]
+        consumed_scalars: set[str] = set()
+        for cue in comparison_cues:
+            nearby = min(
+                normalized.scalars,
+                key=lambda scalar: abs(scalar.start - cue.end),
+                default=None,
+            )
+            if nearby is None or abs(nearby.start - cue.end) > 24:
+                continue
+            consumed_scalars.add(nearby.scalar_id)
+            local = normalized.normalized_text[max(0, cue.start - 28) : min(len(normalized.normalized_text), nearby.end + 28)]
+            cardinality = nearby.normalized in {0, 1} and bool(
+                re.search(r"\b(?:race|event|record|item|result|time)\b", local, re.I)
+            )
+            if cardinality:
+                evidence = [
+                    item for item in anchors
+                    if tokens(" ".join([item.canonical, *item.aliases]))
+                    & {"win", "race", "event", "outcome", "position", "result"}
+                ]
+                relevant = self._best_targets(local, evidence or anchors, limit=3)
+            else:
+                relevant = self._best_targets(local, anchors, limit=3)
+            add(
+                "cardinality" if cardinality else "comparison",
+                normalized.normalized_text[cue.start : nearby.end],
+                "minimum matching records" if cardinality and cue.canonical == "GTE" else cue.canonical.lower(),
+                "Comparison is retained as a restriction on target evidence, not as a graph node.",
+                [item.anchor_id for item in relevant],
+                "support_requirement" if cardinality else "filter_value",
+                operator=cue.canonical,
+                value=nearby.normalized,
+                start=cue.start,
+                end=nearby.end,
+                confidence=0.96,
             )
 
-        relative = re.search(r"\b([A-Za-z][\w-]*)\s+(that|which|who)\s+([^,.]+)", text, re.I)
-        if relative:
-            add(
-                f"Attachment of '{relative.group(2)} {relative.group(3).strip()}'",
-                "attachment",
-                entity_ids,
-                [
-                    f"The relative clause modifies {relative.group(1)}.",
-                    "The relative clause modifies another nearby entity.",
-                ],
-                f"Prefer attachment to {relative.group(1)}, the nearest noun phrase.",
-                "Changing attachment changes eligibility or grouping.",
-                0.86,
+        for scalar in normalized.scalars:
+            if scalar.scalar_id in consumed_scalars:
+                continue
+            temporal = scalar.scalar_type in {"year", "date"} or any(
+                word in scalar.context for word in ("season", "year", "date", "month")
             )
-        if re.search(r"\b(?:its|their|that\s+(?:entity|group|constructor|team|user))\b", text, re.I):
+            if temporal:
+                temporal_targets = [
+                    item for item in anchors
+                    if tokens(item.canonical) & {"season", "year", "date", "time"}
+                ]
+                temporal_context = [
+                    item for item in anchors
+                    if item.kind == AnchorKind.ENTITY and tokens(item.canonical) & {"race", "event", "season"}
+                ]
+                relevant = [*temporal_targets[:1], *temporal_context[:1]]
+                if not relevant:
+                    relevant = self._best_targets("season year date time", anchors, limit=2)
+                kind, canonical, effect = "temporal", "temporal scope", "filter_value"
+            else:
+                relevant = self._best_targets(scalar.context, anchors, limit=3)
+                kind, canonical, effect = "value", "query value", "filter_value"
             add(
-                "Reference resolution for a contextual noun phrase",
-                "coreference",
-                entity_ids,
-                ["Resolve to the nearest compatible entity.", "Retain other compatible entity readings."],
-                "Prefer the nearest grammatically compatible antecedent.",
-                "The reference may change the scope of a returned measure.",
-                0.75,
+                kind,
+                scalar.surface,
+                canonical,
+                f"The explicit {scalar.scalar_type} value restricts matching records.",
+                [item.anchor_id for item in relevant],
+                effect,
+                operator="EQ",
+                value=scalar.normalized,
+                start=scalar.start,
+                end=scalar.end,
+                confidence=0.98,
             )
-        realization_ids = [
-            item.anchor_id
-            for item in anchors
-            if item.kind == AnchorKind.MEASURE and item.alternatives
-        ]
-        if realization_ids:
+
+        for cue in normalized.cues:
+            local = cue.scope_hint
+            if cue.category == "ranking":
+                score_targets = [
+                    item for item in anchors
+                    if tokens(" ".join([item.canonical, *item.aliases])) & {"score", "point"}
+                ]
+                numeric_targets = [
+                    item for item in anchors
+                    if item.expected_bson_types and any(value in item.expected_bson_types for value in ("int", "long", "double", "decimal"))
+                ]
+                relevant = self._best_targets(local, score_targets or numeric_targets or anchors, limit=2)
+                add(
+                    "role_hint",
+                    cue.surface,
+                    "ranking measure",
+                    "Ranking language strengthens numeric score/measure paths during retrieval.",
+                    [item.anchor_id for item in relevant],
+                    "role_hint",
+                    operator=cue.canonical,
+                    start=cue.start,
+                    end=cue.end,
+                    confidence=0.88,
+                )
+            elif cue.category == "aggregation":
+                preferred = [
+                    item for item in anchors
+                    if item.kind == AnchorKind.DERIVED_CONCEPT
+                    or any(value in item.expected_bson_types for value in ("int", "long", "double", "decimal"))
+                ]
+                relevant = self._best_targets(
+                    normalized.normalized_text[cue.start : min(len(normalized.normalized_text), cue.end + 42)],
+                    preferred or anchors,
+                    limit=2 if cue.canonical == "COUNT" else 1,
+                )
+                add(
+                    "role_hint",
+                    cue.surface,
+                    "derived measure evidence",
+                    "Aggregation wording identifies the target's semantic role and possible supporting records.",
+                    [item.anchor_id for item in relevant],
+                    "role_hint",
+                    operator=cue.canonical,
+                    start=cue.start,
+                    end=cue.end,
+                    confidence=0.9,
+                )
+            elif cue.category == "grouping":
+                entities = [item for item in anchors if item.kind == AnchorKind.ENTITY]
+                following = re.match(r"\s+([A-Za-z][\w-]*)", normalized.normalized_text[cue.end :])
+                grouped_name = singular(following.group(1).lower()) if following else ""
+                exact = [item for item in entities if item.canonical == grouped_name]
+                relevant = exact or self._best_targets(local, entities, limit=1)
+                add(
+                    "scope",
+                    cue.surface,
+                    "entity scope",
+                    "Grouping wording makes the nearby entity a structural context for path retrieval.",
+                    [item.anchor_id for item in relevant],
+                    "relation_scope",
+                    operator=cue.canonical,
+                    start=cue.start,
+                    end=cue.end,
+                    confidence=0.92,
+                )
+
+        for match in re.finditer(r"\b([A-Za-z][\w-]*)\s+(?:that|which|who)\s+([^,.]+)", normalized.normalized_text, re.I):
+            phrase = match.group(0)
+            if not re.search(r"\b(?:won|win|has|have|with|without|contains?|includes?)\b", phrase, re.I):
+                continue
+            subject = singular(match.group(1).lower())
+            subject_targets = [
+                item for item in anchors
+                if item.kind == AnchorKind.ENTITY and item.canonical == subject
+            ]
+            evidence = [
+                item for item in anchors
+                if tokens(" ".join([item.canonical, *item.aliases]))
+                & {"win", "race", "event", "outcome", "position", "result"}
+            ]
+            relevant = [*subject_targets, *self._best_targets(phrase, evidence, limit=3)]
             add(
-                "Physical realization of derived measures",
-                "realization",
-                realization_ids,
-                ["Use a stored aggregate.", "Compute from lower-level records."],
-                "Carry both realizations into later retrieval.",
-                "The question fixes the meaning, not how the database stores it.",
-                0.94,
+                "eligibility",
+                phrase,
+                "eligibility evidence",
+                "The relative clause restricts eligible entities and identifies supporting relationship evidence.",
+                [item.anchor_id for item in relevant],
+                "support_requirement",
+                operator="EXISTS",
+                start=match.start(),
+                end=match.end(),
+                confidence=0.91,
             )
-        ranking = any(item.canonical in {"ARGMAX", "ARGMIN"} for item in anchors)
-        ties_explicit = any(item.kind == AnchorKind.TIE_POLICY for item in anchors)
-        if ranking and not ties_explicit:
-            ranking_ids = [item.anchor_id for item in anchors if item.canonical in {"ARGMAX", "ARGMIN"}]
-            add(
-                "Tie behavior for an extremum",
-                "operator",
-                ranking_ids,
-                ["Return every tied result.", "Return one deterministic representative."],
-                "Retain all ties unless the question requests a fixed limit.",
-                "Extremum wording alone may not define tie cardinality.",
-                0.69,
-            )
-        return AmbiguityExtraction(
-            ambiguities=ambiguities,
-            notes=["Uncertainty is explicit and remains available for later evidence-based resolution."],
+
+        return RestrictionBinding(
+            restrictions=self._dedupe(restrictions),
+            deferred_plan_cues=targets.deferred_plan_cues,
+            notes=[
+                "Temporal values, constants, comparisons, aggregation, and grouping are attached as target metadata.",
+                "Sorting and tie policy are preserved for later planning but excluded from schema retrieval.",
+            ],
         )
 
+    @staticmethod
+    def _best_targets(text: str, anchors: list[TypedSemanticAnchor], *, limit: int) -> list[TypedSemanticAnchor]:
+        query = tokens(text)
+        scored: list[tuple[int, int, TypedSemanticAnchor]] = []
+        for anchor in anchors:
+            vocabulary = tokens(
+                " ".join([anchor.canonical, anchor.surface, *anchor.aliases, *anchor.parent_hints])
+            )
+            overlap = len(query & vocabulary)
+            role_bonus = 1 if anchor.retrieval_role == "supporting" else 0
+            if overlap:
+                scored.append((overlap, role_bonus, anchor))
+        scored.sort(key=lambda item: (item[0], item[1], item[2].confidence), reverse=True)
+        if scored:
+            return [item[2] for item in scored[:limit]]
+        return sorted(anchors, key=lambda item: item.confidence, reverse=True)[:1]
 
-class AnchorGraphBuilder:
-    def build(
-        self,
-        question: str,
-        deterministic: DeterministicAnchorExtraction,
-        semantic: SemanticAnchorExtraction,
-    ) -> AnchorGraph:
-        nodes = [*deterministic.anchors, *semantic.anchors]
-        by_id: dict[str, TypedSemanticAnchor] = {}
-        warnings: list[str] = []
-        for node in nodes:
-            if node.anchor_id in by_id:
-                warnings.append(f"Duplicate anchor id {node.anchor_id} was dropped.")
-                continue
-            if node.explicit and node.surface and node.surface.lower() not in question.lower():
-                warnings.append(f"Explicit anchor {node.anchor_id} has no exact source text.")
-            by_id[node.anchor_id] = node
-        edges: list[AnchorRelation] = []
-        seen: set[tuple[str, str, str]] = set()
-        for relation in [*deterministic.relations, *semantic.relations]:
-            if relation.source_anchor_id not in by_id or relation.target_anchor_id not in by_id:
-                warnings.append(f"Relation {relation.relation_id} referenced a missing anchor.")
-                continue
-            key = (relation.source_anchor_id, relation.target_anchor_id, relation.relation_type)
+    @staticmethod
+    def _dedupe(values: list[RetrievalRestriction]) -> list[RetrievalRestriction]:
+        seen: set[tuple[str, str, tuple[str, ...], str | None, str]] = set()
+        result: list[RetrievalRestriction] = []
+        for value in values:
+            key = (
+                value.kind,
+                value.canonical,
+                tuple(value.anchor_ids),
+                value.operator,
+                str(value.normalized_value),
+            )
             if key in seen:
                 continue
             seen.add(key)
+            value.restriction_id = f"restriction_{len(result) + 1}"
+            result.append(value)
+        return result
+
+
+class RetrievalGraphBuilder:
+    def build(
+        self,
+        question: str,
+        targets: TargetExtraction,
+        support: SupportInference,
+        binding: RestrictionBinding,
+    ) -> AnchorGraph:
+        by_id: dict[str, TypedSemanticAnchor] = {}
+        warnings: list[str] = []
+        for node in [*targets.anchors, *support.anchors]:
+            if node.anchor_id in by_id:
+                warnings.append(f"Duplicate retrieval target id {node.anchor_id} was dropped.")
+                continue
+            if node.explicit and node.surface and node.surface.lower() not in question.lower():
+                warnings.append(f"Explicit target {node.anchor_id} has no exact source text.")
+            by_id[node.anchor_id] = node
+
+        edges: list[AnchorRelation] = []
+        seen_edges: set[tuple[str, str, str]] = set()
+        for relation in [*targets.relations, *support.relations]:
+            if relation.source_anchor_id not in by_id or relation.target_anchor_id not in by_id:
+                warnings.append(f"Relation {relation.relation_id} referenced a missing retrieval target.")
+                continue
+            key = (relation.source_anchor_id, relation.target_anchor_id, relation.relation_type)
+            reverse = (relation.target_anchor_id, relation.source_anchor_id, relation.relation_type)
+            if key in seen_edges or reverse in seen_edges:
+                continue
+            seen_edges.add(key)
             relation.relation_id = f"edge_{len(edges) + 1}"
             edges.append(relation)
+
+        restrictions: list[RetrievalRestriction] = []
+        for restriction in binding.restrictions:
+            restriction.anchor_ids = [item for item in restriction.anchor_ids if item in by_id]
+            if not restriction.anchor_ids:
+                warnings.append(f"Restriction {restriction.restriction_id} remains globally scoped.")
+            restrictions.append(restriction)
+
         adjacency: dict[str, set[str]] = defaultdict(set)
         for edge in edges:
             adjacency[edge.source_anchor_id].add(edge.target_anchor_id)
@@ -975,16 +1167,26 @@ class AnchorGraphBuilder:
                         unseen.remove(neighbor)
                         queue.append(neighbor)
             components.append(component)
-        roots = [item.anchor_id for item in by_id.values() if item.kind == AnchorKind.OUTPUT]
+
+        roots = [
+            item.anchor_id
+            for item in by_id.values()
+            if item.output_requested and item.retrieval_role == "primary"
+        ]
         if not roots:
-            roots = [item.anchor_id for item in by_id.values() if item.kind == AnchorKind.ENTITY]
+            roots = [
+                item.anchor_id for item in by_id.values()
+                if item.kind == AnchorKind.ENTITY and item.retrieval_role == "primary"
+            ]
+        if not any(item.retrieval_role == "primary" for item in by_id.values()):
+            warnings.append("No primary retrieval target was extracted.")
         if not any(item.kind == AnchorKind.ENTITY for item in by_id.values()):
-            warnings.append("No entity anchor was extracted.")
-        if not any(item.kind == AnchorKind.OUTPUT for item in by_id.values()):
-            warnings.append("No explicit output anchor was extracted.")
+            warnings.append("No containing entity or schema group was extracted.")
+
         return AnchorGraph(
             nodes=list(by_id.values()),
             edges=edges,
+            restrictions=restrictions,
             root_anchor_ids=roots,
             connected_components=components,
             validation_warnings=warnings,
@@ -996,116 +1198,135 @@ class RetrievalSpecificationBuilder:
         by_id = {item.anchor_id: item for item in graph.nodes}
         neighbors: dict[str, list[tuple[TypedSemanticAnchor, AnchorRelation]]] = defaultdict(list)
         for edge in graph.edges:
-            left, right = by_id[edge.source_anchor_id], by_id[edge.target_anchor_id]
+            left = by_id[edge.source_anchor_id]
+            right = by_id[edge.target_anchor_id]
             neighbors[left.anchor_id].append((right, edge))
             neighbors[right.anchor_id].append((left, edge))
+        restrictions_by_anchor: dict[str, list[RetrievalRestriction]] = defaultdict(list)
+        for restriction in graph.restrictions:
+            for anchor_id in restriction.anchor_ids:
+                restrictions_by_anchor[anchor_id].append(restriction)
+
         specifications: list[RetrievalSpecification] = []
         for anchor in graph.nodes:
             related = neighbors[anchor.anchor_id]
-            search_kind = self._search_kind(anchor)
+            attached = restrictions_by_anchor[anchor.anchor_id]
             terms: list[str] = []
-            for text in [anchor.surface, anchor.canonical, *anchor.alternatives, *(item.canonical for item, _ in related)]:
-                for token in re.findall(r"[A-Za-z0-9][A-Za-z0-9_-]*", text.lower()):
+            source_terms = [
+                anchor.surface,
+                anchor.canonical,
+                *anchor.aliases,
+                *anchor.parent_hints,
+                *(item.canonical for item, _ in related),
+                *(item.canonical for item in attached),
+                *(str(item.normalized_value) for item in attached if item.normalized_value is not None),
+            ]
+            for source in source_terms:
+                for token in re.findall(r"[A-Za-z0-9][A-Za-z0-9_-]*", source.lower()):
                     if token not in terms and token not in {"the", "a", "an", "of", "for", "that", "and"}:
                         terms.append(token)
             structural = [
-                f"{edge.relation_type}: {item.canonical}"
-                for item, edge in related
-                if edge.relation_type in {"related_to", "same_scope", "grouped_by", "partitioned_by", "filters"}
+                f"{edge.relation_type}: {item.canonical}" for item, edge in related
+            ] + [
+                f"{restriction.kind}: {restriction.description}" for restriction in attached
             ]
-            context = "; ".join(item.description for item, _ in related[:4])
+            search_kind = self._search_kind(anchor)
             specifications.append(
                 RetrievalSpecification(
                     specification_id=f"spec_{len(specifications) + 1}",
                     anchor_ids=[anchor.anchor_id, *(item.anchor_id for item, _ in related)],
+                    restriction_ids=[item.restriction_id for item in attached],
                     search_kind=search_kind,
-                    query_terms=terms[:20],
+                    query_terms=terms[:24],
                     semantic_query=(
-                        f"{anchor.description} Semantic role: {anchor.semantic_role}. Related context: {context}"
-                    ).strip(),
+                        f"Retrieve {anchor.retrieval_role} {anchor.kind.value} concept '{anchor.canonical}'. "
+                        f"{anchor.description} Parent context: {', '.join(anchor.parent_hints) or 'unknown'}. "
+                        f"Evidence constraints: {'; '.join(item.description for item in attached) or 'none'}."
+                    ),
                     expected_bson_types=anchor.expected_bson_types,
                     structural_constraints=structural,
-                    required=anchor.retrieval_required and search_kind != "none",
+                    required=True,
                     rationale=self._rationale(search_kind),
                 )
             )
         return RetrievalSpecificationSet(
             specifications=specifications,
             notes=[
-                "Specifications describe future index requests; this run executed no schema retrieval.",
-                "Related path, value, and group concepts remain bundled to preserve scope.",
+                "Each request targets an entity/group, field path, or evidence needed by a derived concept.",
+                "Restrictions enrich retrieval terms and scoring context without becoming independent searches.",
+                "This stage prepares retrieval requests but does not inspect the schema or database.",
             ],
         )
 
     @staticmethod
     def _search_kind(anchor: TypedSemanticAnchor) -> str:
-        if anchor.kind == AnchorKind.STORED_LITERAL:
-            return "value_path_group"
-        if anchor.kind == AnchorKind.RELATIONSHIP:
-            return "relationship"
-        if anchor.kind == AnchorKind.TEMPORAL:
-            return "type_compatible_path"
-        if anchor.kind in {AnchorKind.ENTITY, AnchorKind.ATTRIBUTE, AnchorKind.MEASURE, AnchorKind.OUTPUT}:
-            return "path"
-        return "none"
+        if anchor.kind == AnchorKind.ENTITY:
+            return "entity_or_group"
+        if anchor.kind == AnchorKind.DERIVED_CONCEPT:
+            return "derived_support"
+        return "field_path"
 
     @staticmethod
     def _rationale(search_kind: str) -> str:
         return {
-            "value_path_group": "Retrieve a stored value together with its containing path and schema group.",
-            "relationship": "Retrieve structural evidence capable of realizing the relationship.",
-            "type_compatible_path": "Retrieve paths whose observed type can represent the temporal concept.",
-            "path": "Retrieve paths using anchor meaning, expected types, and neighboring scope.",
-            "none": "This control anchor constrains later scoring without an independent retrieval request.",
+            "entity_or_group": "Retrieve collection, object, array, or document-group candidates for the entity.",
+            "field_path": "Retrieve schema paths using concept meaning, aliases, types, parent context, and restrictions.",
+            "derived_support": "Retrieve stored realizations and lower-level evidence capable of deriving the concept.",
+            "relationship": "Retrieve structural evidence connecting the participating concepts.",
         }[search_kind]
 
 
-class AnchorBundleBuilder:
+class RetrievalBundleBuilder:
     def build(
         self,
         question: str,
         normalized: NormalizedQuestion,
         graph: AnchorGraph,
-        ambiguities: AmbiguityExtraction,
+        binding: RestrictionBinding,
         specifications: RetrievalSpecificationSet,
     ) -> AnchorBundle:
         categories = [
-            any(item.kind in {AnchorKind.ENTITY, AnchorKind.ATTRIBUTE, AnchorKind.MEASURE} for item in graph.nodes),
-            any(item.kind == AnchorKind.OUTPUT for item in graph.nodes),
-            any(item.kind in {AnchorKind.OPERATION, AnchorKind.COMPARISON, AnchorKind.GROUPING, AnchorKind.SORT} for item in graph.nodes),
+            any(item.retrieval_role == "primary" for item in graph.nodes),
+            any(item.kind == AnchorKind.ENTITY for item in graph.nodes),
+            any(item.output_requested for item in graph.nodes),
             bool(graph.edges),
-            any(item.required for item in specifications.specifications),
+            bool(graph.restrictions),
+            bool(specifications.specifications),
         ]
-        weights = [0.3, 0.2, 0.2, 0.15, 0.15]
-        coverage = round(sum(weight for present, weight in zip(categories, weights, strict=True) if present), 3)
-        warnings = list(graph.validation_warnings)
-        if any(item.blocking for item in ambiguities.ambiguities):
-            warnings.append("At least one blocking semantic ambiguity remains unresolved.")
+        weights = [0.25, 0.15, 0.2, 0.15, 0.1, 0.15]
+        coverage = round(
+            sum(weight for present, weight in zip(categories, weights, strict=True) if present),
+            3,
+        )
+        blocking = any("No primary" in warning for warning in graph.validation_warnings)
         return AnchorBundle(
             question=question,
             normalized_question=normalized,
             anchors=graph.nodes,
             relations=graph.edges,
-            ambiguities=ambiguities.ambiguities,
+            restrictions=graph.restrictions,
+            deferred_plan_cues=binding.deferred_plan_cues,
             retrieval_specifications=specifications.specifications,
             coverage_score=coverage,
-            ready_for_retrieval=coverage >= 0.75 and not any("No entity" in item for item in warnings),
-            validation_warnings=warnings,
+            ready_for_retrieval=coverage >= 0.7 and not blocking,
+            validation_warnings=graph.validation_warnings,
         )
 
 
 class AnchorExtractionPipeline:
+    """Monitored retrieval-concept extraction; retained name preserves the public run API."""
+
     def __init__(self, settings: Settings, store: AnchorRunStore):
         self.settings = settings
         self.store = store
         self.llm = StructuredAnchorLLM(settings)
         self.normalizer = QuestionNormalizer()
-        self.deterministic = DeterministicAnchorExtractor()
-        self.semantic = SemanticAnchorExtractor(self.llm)
-        self.ambiguity = AmbiguityExtractor(self.llm)
-        self.graph = AnchorGraphBuilder()
+        self.targets = RetrievalTargetExtractor()
+        self.support = SupportingFieldInferer(self.llm)
+        self.binding = RestrictionBinder()
+        self.graph = RetrievalGraphBuilder()
         self.specifications = RetrievalSpecificationBuilder()
-        self.bundle = AnchorBundleBuilder()
+        self.bundle = RetrievalBundleBuilder()
         self._locks: dict[str, threading.Lock] = {}
 
     def create_run(self, request: AnchorRunCreate) -> AnchorRunView:
@@ -1144,64 +1365,58 @@ class AnchorExtractionPipeline:
                 lambda: self.normalizer.normalize(
                     run.question, locale=run.locale, timezone=run.timezone
                 ),
-                lambda value: f"{len(value.clauses)} clauses, {len(value.scalars)} scalars, {len(value.cues)} cues",
+                lambda value: f"{len(value.clauses)} clauses, {len(value.scalars)} values, {len(value.cues)} cues",
             )
             run.normalized_question = normalized
-            deterministic = self._stage(
+            targets = self._stage(
                 run,
-                "deterministic_extraction",
-                lambda: self.deterministic.extract(normalized),
-                lambda value: f"{len(value.anchors)} deterministic anchors and {len(value.relations)} relations",
+                "target_extraction",
+                lambda: self.targets.extract(normalized),
+                lambda value: f"{len(value.anchors)} primary entity or field targets",
             )
-            run.deterministic_extraction = deterministic
-            semantic = self._stage(
+            run.target_extraction = targets
+            support = self._stage(
                 run,
-                "semantic_extraction",
-                lambda: self.semantic.extract(
+                "support_inference",
+                lambda: self.support.infer(
                     normalized,
-                    deterministic,
+                    targets,
                     use_llm=use_llm,
                     fallback_on_error=fallback,
                 ),
-                lambda value: f"{len(value.anchors)} semantic anchors and {len(value.relations)} relations",
+                lambda value: f"{len(value.anchors)} supporting retrieval targets inferred",
             )
-            run.semantic_extraction = semantic
-            ambiguity = self._stage(
+            run.support_inference = support
+            binding = self._stage(
                 run,
-                "ambiguity_extraction",
-                lambda: self.ambiguity.extract(
-                    normalized,
-                    deterministic,
-                    semantic,
-                    use_llm=use_llm,
-                    fallback_on_error=fallback,
-                ),
-                lambda value: f"{len(value.ambiguities)} ambiguity candidates retained",
+                "restriction_binding",
+                lambda: self.binding.bind(normalized, targets, support),
+                lambda value: f"{len(value.restrictions)} restrictions bound; {len(value.deferred_plan_cues)} plan cues deferred",
             )
-            run.ambiguity_extraction = ambiguity
+            run.restriction_binding = binding
             graph = self._stage(
                 run,
-                "anchor_graph",
-                lambda: self.graph.build(run.question, deterministic, semantic),
-                lambda value: f"{len(value.nodes)} nodes and {len(value.edges)} edges",
+                "retrieval_graph",
+                lambda: self.graph.build(run.question, targets, support, binding),
+                lambda value: f"{len(value.nodes)} targets, {len(value.edges)} relations, {len(value.restrictions)} restrictions",
             )
-            run.anchor_graph = graph
+            run.retrieval_graph = graph
             specifications = self._stage(
                 run,
                 "retrieval_specifications",
                 lambda: self.specifications.build(graph),
-                lambda value: f"{sum(item.required for item in value.specifications)} future retrieval requests",
+                lambda value: f"{len(value.specifications)} future schema retrieval requests",
             )
             run.retrieval_specifications = specifications
             bundle = self._stage(
                 run,
-                "anchor_bundle",
+                "retrieval_bundle",
                 lambda: self.bundle.build(
-                    run.question, normalized, graph, ambiguity, specifications
+                    run.question, normalized, graph, binding, specifications
                 ),
-                lambda value: f"AnchorBundle coverage {value.coverage_score:.0%}",
+                lambda value: f"RetrievalBundle coverage {value.coverage_score:.0%}",
             )
-            run.anchor_bundle = bundle
+            run.retrieval_bundle = bundle
             run.status = AnchorRunStatus.COMPLETED
             self.store.save(run)
         except Exception as error:

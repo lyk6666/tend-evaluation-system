@@ -178,20 +178,8 @@ export type ResultRecordPage = {
 
 export type AnchorKind =
   | "entity"
-  | "attribute"
-  | "measure"
-  | "stored_literal"
-  | "query_constant"
-  | "temporal"
-  | "operation"
-  | "comparison"
-  | "output"
-  | "relationship"
-  | "grouping"
-  | "sort"
-  | "tie_policy"
-  | "quantifier"
-  | "negation";
+  | "field"
+  | "derived_concept";
 
 export type TypedSemanticAnchor = {
   anchor_id: string;
@@ -199,15 +187,17 @@ export type TypedSemanticAnchor = {
   surface: string;
   canonical: string;
   description: string;
-  semantic_role: string;
+  retrieval_role: "primary" | "supporting";
   expected_bson_types: string[];
+  aliases: string[];
+  parent_hints: string[];
+  output_requested: boolean;
+  derivation_hints: string[];
   explicit: boolean;
   source: "rule" | "llm" | "inferred" | "merged";
   start: number | null;
   end: number | null;
   confidence: number;
-  alternatives: string[];
-  retrieval_required: boolean;
 };
 
 export type AnchorRelation = {
@@ -250,22 +240,37 @@ export type NormalizedQuestion = {
   notes: string[];
 };
 
-export type AnchorAmbiguity = {
-  ambiguity_id: string;
-  text: string;
-  ambiguity_type: string;
+export type RetrievalRestriction = {
+  restriction_id: string;
+  kind: "temporal" | "value" | "comparison" | "cardinality" | "role_hint" | "eligibility" | "scope";
+  surface: string;
+  canonical: string;
+  description: string;
   anchor_ids: string[];
-  interpretations: string[];
-  recommended_interpretation: string;
-  reason: string;
-  blocking: boolean;
+  operator: string | null;
+  normalized_value: string | number | boolean | null;
+  retrieval_effect: "filter_value" | "type_hint" | "role_hint" | "support_requirement" | "relation_scope";
+  source: string;
+  start: number | null;
+  end: number | null;
   confidence: number;
+};
+
+export type DeferredPlanCue = {
+  cue_id: string;
+  surface: string;
+  kind: "sorting" | "tie_policy" | "presentation";
+  canonical: string;
+  reason: string;
+  start: number | null;
+  end: number | null;
 };
 
 export type RetrievalSpecification = {
   specification_id: string;
   anchor_ids: string[];
-  search_kind: "path" | "value_path_group" | "type_compatible_path" | "relationship" | "structure" | "none";
+  restriction_ids: string[];
+  search_kind: "entity_or_group" | "field_path" | "derived_support" | "relationship";
   query_terms: string[];
   semantic_query: string;
   expected_bson_types: string[];
@@ -297,24 +302,27 @@ export type AnchorRunView = {
   model_id: string;
   stages: AnchorStageTrace[];
   normalized_question: NormalizedQuestion | null;
-  deterministic_extraction: {
+  target_extraction: {
     anchors: TypedSemanticAnchor[];
     relations: AnchorRelation[];
     unresolved_phrases: string[];
+    deferred_plan_cues: DeferredPlanCue[];
     notes: string[];
   } | null;
-  semantic_extraction: {
+  support_inference: {
     anchors: TypedSemanticAnchor[];
     relations: AnchorRelation[];
     notes: string[];
   } | null;
-  ambiguity_extraction: {
-    ambiguities: AnchorAmbiguity[];
+  restriction_binding: {
+    restrictions: RetrievalRestriction[];
+    deferred_plan_cues: DeferredPlanCue[];
     notes: string[];
   } | null;
-  anchor_graph: {
+  retrieval_graph: {
     nodes: TypedSemanticAnchor[];
     edges: AnchorRelation[];
+    restrictions: RetrievalRestriction[];
     root_anchor_ids: string[];
     connected_components: string[][];
     validation_warnings: string[];
@@ -323,12 +331,13 @@ export type AnchorRunView = {
     specifications: RetrievalSpecification[];
     notes: string[];
   } | null;
-  anchor_bundle: {
+  retrieval_bundle: {
     question: string;
     normalized_question: NormalizedQuestion;
     anchors: TypedSemanticAnchor[];
     relations: AnchorRelation[];
-    ambiguities: AnchorAmbiguity[];
+    restrictions: RetrievalRestriction[];
+    deferred_plan_cues: DeferredPlanCue[];
     retrieval_specifications: RetrievalSpecification[];
     coverage_score: number;
     ready_for_retrieval: boolean;
