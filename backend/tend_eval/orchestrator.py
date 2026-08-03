@@ -160,20 +160,30 @@ class RunOrchestrator:
             else:
                 self.store.requeue_work(item.id)
             raise
-        except Exception as error:  # noqa: BLE001 - retry within the configured spend budget
+        except Exception as error:  # noqa: BLE001 - separate transport retries from model responses
             message = f"{type(error).__name__}: {error}"
-            if item.attempt >= self.max_generation_attempts:
+            consumed_generation_attempt = bool(
+                getattr(error, "consumes_generation_attempt", False)
+            )
+            next_generation_attempt = item.generation_attempt + int(consumed_generation_attempt)
+            if (
+                consumed_generation_attempt
+                and next_generation_attempt >= self.max_generation_attempts
+            ):
                 self.store.finish_work(
                     item.id,
                     error=(
-                        f"generation blocked after {item.attempt} attempts: {message}"
+                        "generation blocked after "
+                        f"{next_generation_attempt} API-backed responses: {message}"
                     ),
+                    consumed_generation_attempt=True,
                 )
             else:
                 self.store.retry_work(
                     item.id,
                     error=message,
                     delay_seconds=self._retry_delay(item.attempt),
+                    consumed_generation_attempt=consumed_generation_attempt,
                 )
         else:
             self.store.finish_work(item.id, result=result)

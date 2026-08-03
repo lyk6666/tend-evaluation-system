@@ -83,6 +83,7 @@ class RunStore:
                     payload_json TEXT NOT NULL,
                     status TEXT NOT NULL,
                     attempt INTEGER NOT NULL DEFAULT 0,
+                    generation_attempt INTEGER NOT NULL DEFAULT 0,
                     retry_at TEXT,
                     worker_id TEXT,
                     result_json TEXT,
@@ -119,6 +120,10 @@ class RunStore:
             }
             if "retry_at" not in columns:
                 connection.execute("ALTER TABLE work_items ADD COLUMN retry_at TEXT")
+            if "generation_attempt" not in columns:
+                connection.execute(
+                    "ALTER TABLE work_items ADD COLUMN generation_attempt INTEGER NOT NULL DEFAULT 0"
+                )
             connection.execute(
                 "CREATE INDEX IF NOT EXISTS idx_work_run_retry "
                 "ON work_items(run_id, status, retry_at, ordinal)"
@@ -397,6 +402,7 @@ class RunStore:
         result: dict[str, Any] | None = None,
         error: str | None = None,
         cancelled: bool = False,
+        consumed_generation_attempt: bool = False,
     ) -> None:
         now = utc_now()
         status = WorkStatus.CANCELLED if cancelled else WorkStatus.FAILED if error else WorkStatus.SUCCEEDED
@@ -410,11 +416,13 @@ class RunStore:
                 return
             connection.execute(
                 "UPDATE work_items SET status = ?, result_json = ?, error = ?, "
-                "finished_at = ?, worker_id = NULL WHERE id = ?",
+                "generation_attempt = generation_attempt + ?, finished_at = ?, worker_id = NULL "
+                "WHERE id = ?",
                 (
                     status,
                     json.dumps(result, ensure_ascii=False) if result is not None else None,
                     error,
+                    int(consumed_generation_attempt),
                     now,
                     work_item_id,
                 ),
@@ -461,22 +469,36 @@ class RunStore:
                 )
             connection.commit()
 
-    def retry_work(self, work_item_id: int, *, error: str, delay_seconds: float) -> None:
-        """Schedule a fresh generation attempt without accepting a failed payload."""
+    def retry_work(
+        self,
+        work_item_id: int,
+        *,
+        error: str,
+        delay_seconds: float,
+        consumed_generation_attempt: bool,
+    ) -> None:
+        """Schedule a retry, accounting only for a response that reached MQL generation."""
         now = utc_now()
         retry_at = utc_after(delay_seconds)
         with self.connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
             row = connection.execute(
-                "SELECT run_id, method_id, db_id, attempt FROM work_items "
+                "SELECT run_id, method_id, db_id, attempt, generation_attempt FROM work_items "
                 "WHERE id = ? AND status = ?",
                 (work_item_id, WorkStatus.RUNNING),
             ).fetchone()
             if row is not None:
                 connection.execute(
                     "UPDATE work_items SET status = ?, worker_id = NULL, result_json = NULL, "
-                    "error = ?, retry_at = ?, started_at = NULL, finished_at = NULL WHERE id = ?",
-                    (WorkStatus.RETRYING, error, retry_at, work_item_id),
+                    "error = ?, retry_at = ?, generation_attempt = generation_attempt + ?, "
+                    "started_at = NULL, finished_at = NULL WHERE id = ?",
+                    (
+                        WorkStatus.RETRYING,
+                        error,
+                        retry_at,
+                        int(consumed_generation_attempt),
+                        work_item_id,
+                    ),
                 )
                 self._add_event(
                     connection,
@@ -487,6 +509,13 @@ class RunStore:
                         "method_id": row["method_id"],
                         "db_id": row["db_id"],
                         "attempt": int(row["attempt"]),
+                        "generation_attempt": int(row["generation_attempt"])
+                        + int(consumed_generation_attempt),
+                        "retry_kind": (
+                            "invalid_model_response"
+                            if consumed_generation_attempt
+                            else "provider_or_transport"
+                        ),
                         "retry_at": retry_at,
                         "error": error,
                     },
@@ -730,6 +759,7 @@ class RunStore:
             payload=json.loads(row["payload_json"]),
             status=row["status"],
             attempt=row["attempt"],
+            generation_attempt=row["generation_attempt"],
             retry_at=row["retry_at"],
             started_at=row["started_at"],
             finished_at=row["finished_at"],

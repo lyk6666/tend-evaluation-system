@@ -74,7 +74,16 @@ def test_generated_mql_acceptance_gate_requires_nonempty_executable_query(tmp_pa
         {"result_type": "solver_prediction", "MQL": "db.collection.aggregate([])"},
     )
     assert cursor.closed
-    with pytest.raises(GeneratedMQLRejected, match="empty MQL"):
+    with pytest.raises(GeneratedMQLRejected, match="empty MQL") as empty:
         executor._validate_generated_mql(
             runtime, "db-a", {"result_type": "solver_prediction", "MQL": ""}
         )
+    assert empty.value.consumes_generation_attempt
+
+    with pytest.raises(GeneratedMQLRejected, match="did not produce") as unavailable:
+        executor._validate_generated_mql(
+            runtime,
+            "db-a",
+            {"result_type": "solver_failure", "error_code": "LLM_ERROR", "MQL": ""},
+        )
+    assert not unavailable.value.consumes_generation_attempt

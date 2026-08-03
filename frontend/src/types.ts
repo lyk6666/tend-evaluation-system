@@ -104,6 +104,7 @@ export type WorkItem = {
   payload: Record<string, unknown>;
   status: "pending" | "retrying" | "running" | "succeeded" | "failed" | "cancelled";
   attempt: number;
+  generation_attempt: number;
   retry_at: string | null;
   started_at: string | null;
   finished_at: string | null;

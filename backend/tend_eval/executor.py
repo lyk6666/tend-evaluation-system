@@ -18,6 +18,10 @@ from .store import RunStore, utc_now
 class GeneratedMQLRejected(RuntimeError):
     """The model returned a payload that cannot be accepted as an executable query."""
 
+    def __init__(self, message: str, *, consumes_generation_attempt: bool):
+        super().__init__(message)
+        self.consumes_generation_attempt = consumes_generation_attempt
+
 
 class TendMethodExecutor:
     """Thin adapter over the installed official TEND runtime and method implementations."""
@@ -233,9 +237,16 @@ class TendMethodExecutor:
         mql = payload.get("MQL")
         if result_type.endswith("_failure") or error_code:
             detail = str(payload.get("message") or error_code or result_type)
-            raise GeneratedMQLRejected(f"solver did not produce an accepted MQL: {detail}")
+            # The upstream solver uses LLM_ERROR when it could not obtain a candidate at all
+            # (e.g. VPN/transport/provider failures). That is not a model response and must not
+            # consume the bounded regeneration budget.
+            transient = str(error_code or "").upper() in {"LLM_ERROR", "RATE_LIMIT"}
+            raise GeneratedMQLRejected(
+                f"solver did not produce an accepted MQL: {detail}",
+                consumes_generation_attempt=not transient,
+            )
         if not isinstance(mql, str) or not mql.strip():
-            raise GeneratedMQLRejected("solver returned an empty MQL")
+            raise GeneratedMQLRejected("solver returned an empty MQL", consumes_generation_attempt=True)
 
         from tend.execution.mongo import assert_no_disabled, parse_pipeline
 
@@ -253,7 +264,8 @@ class TendMethodExecutor:
             raise
         except Exception as error:  # noqa: BLE001 - preserve the exact regeneration reason
             raise GeneratedMQLRejected(
-                f"generated MQL failed validation/execution: {type(error).__name__}: {error}"
+                f"generated MQL failed validation/execution: {type(error).__name__}: {error}",
+                consumes_generation_attempt=True,
             ) from error
 
     @staticmethod

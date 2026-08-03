@@ -79,6 +79,7 @@ class WorkItemView(BaseModel):
     payload: dict[str, Any]
     status: WorkStatus
     attempt: int
+    generation_attempt: int = 0
     retry_at: str | None = None
     started_at: str | None = None
     finished_at: str | None = None

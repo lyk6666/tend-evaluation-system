@@ -84,7 +84,12 @@ def test_rejected_work_is_durably_retried_and_cannot_complete_run(tmp_path: Path
     store.mark_running(run.id)
     item = store.claim_next(run.id, "worker-test")
     assert item is not None
-    store.retry_work(item.id, error="empty MQL", delay_seconds=60)
+    store.retry_work(
+        item.id,
+        error="empty MQL",
+        delay_seconds=60,
+        consumed_generation_attempt=True,
+    )
 
     retrying = store.get_run(run.id)
     assert retrying and retrying.retrying_items == 1
@@ -95,6 +100,7 @@ def test_rejected_work_is_durably_retried_and_cannot_complete_run(tmp_path: Path
     assert saved.result is None
     assert saved.error == "empty MQL"
     assert saved.retry_at is not None
+    assert saved.generation_attempt == 1
 
 
 def test_benchmark_evaluation_lifecycle(tmp_path: Path) -> None:
