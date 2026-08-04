@@ -4,17 +4,28 @@ TEND Evaluation System is a local-first research dashboard for running the offic
 [TEND](https://github.com/Jinwei-Lu/Text-to-NoSQL) baselines and full SAG v3 solver,
 monitoring long benchmark runs, and inspecting EXC, EXF1, claim-axis, and outcome results.
 
-The top-bar **New Methods** workspace contains a schema-retrieval preparation prototype.
-It runs independently from benchmark execution and persists six inspectable artifacts:
-normalization, retrieval-target extraction, supporting-field inference, restriction
-binding, the retrieval graph, and the final
-`RetrievalBundle`. Only entities, fields, and requested derived concepts become graph
-nodes. Temporal values, constants, comparisons, aggregation, and grouping are attached as
-retrieval restrictions; sorting and tie handling are deferred to later planning. This
-workflow deliberately stops before schema retrieval, MongoDB access, and query planning.
-The final `RetrievalBundle` is deliberately minimal: it contains only the original
-`question`, retrieval `targets`, structural `relations`, and directly useful
-`value_constraints`. Rich extraction evidence remains available in the intermediate stages.
+The top-bar **New Methods** workspace implements the complete retrieval-preparation and
+schema-pruning workflow in three tabs:
+
+1. **Bundle extraction** persists six inspectable artifacts: normalization,
+   retrieval-target extraction, supporting-field inference, restriction binding, the
+   retrieval graph, and the final `RetrievalBundle`. The minimal bundle contains only the
+   original `question`, retrieval `targets`, structural `relations`, and directly useful
+   `value_constraints`; it has no duplicated `mention` field.
+2. **Index building** traverses the migrated full schema tree for any of the 11 databases,
+   scans exact MongoDB values, profiles dynamic keys and arrays, infers declared or strict
+   high-confidence ID references, generates search/context embeddings with retryable
+   checkpoints, and publishes an index only after completeness validation. Builds can be
+   paused, resumed, or cancelled.
+3. **Schema pruning** compiles one minimal search request per target, exposes every local
+   scoring signal, evaluates structural and reference relationships, performs joint beam
+   search, and keeps the best plus near-best schema alternatives. Every intermediate stage
+   survives refresh. Final connected schemas are available as zoomable, selectable trees.
+
+Only entities, fields, and requested derived concepts become retrieval targets. Temporal
+values and constants constrain path scoring. Aggregation, grouping, sorting, tie handling,
+units, duplicate representations, EAV layouts, and derived-query construction remain the
+responsibility of later planning stages.
 
 The system keeps the official TEND implementation as an external checkout. It does not
 vendor or republish upstream source code. The adapter records the upstream commit for every
@@ -113,8 +124,21 @@ OPENAI_API_KEY=your-key-here
 OPENAI_BASE_URL=https://api.openai.com/v1
 TEND_EVAL_MODEL=gpt-5.6-luna
 TEND_EVAL_REASONING_EFFORT=medium
+TEND_EVAL_EMBEDDING_API_KEY=
+TEND_EVAL_EMBEDDING_MODEL=text-embedding-3-small
+TEND_EVAL_EMBEDDING_BASE_URL=https://api.openai.com/v1
 TEND_EVAL_MONGO_MAX_TIME_MS=120000
 ```
+
+`TEND_EVAL_EMBEDDING_API_KEY` is separate so indexing can use a distinct provider key; if
+left empty it falls back to `OPENAI_API_KEY`. An empty, malformed, or dimensionally
+inconsistent embedding response never completes a build. The request is retried according
+to `TEND_EVAL_PROVIDER_MAX_RETRIES`, and completed batches remain resumable checkpoints.
+
+Validated indexes are stored under
+`data/runtime/schema_indexes/<database-id>/<index-id>/`. Exact value membership remains in
+SQLite beside min/max profiles, so (for example) a value of `25` is reported as unobserved
+when the data contains only `0, 10, 20, 30, 50`, even though `25` lies inside the range.
 
 For a no-cost plumbing check, set `TEND_EVAL_LLM_STUB=1`. Stub output verifies method,
 MongoDB, persistence, control, and UI paths, but it is not a benchmark result.
