@@ -30,6 +30,9 @@ from .orchestrator import RunOrchestrator, WorkExecutor
 from .schema_contracts import SchemaIndexRunCreate, SchemaIndexRunView
 from .schema_indexing import SchemaIndexManager
 from .schema_store import SchemaIndexRunStore
+from .retrieval_contracts import SchemaPruningRunCreate, SchemaPruningRunView
+from .retrieval_store import SchemaPruningRunStore
+from .schema_retrieval import SchemaPruningManager
 from .store import AnchorRunStore, RunStore
 from .workloads import build_work_items
 
@@ -45,6 +48,13 @@ def create_app(
     anchor_pipeline = AnchorExtractionPipeline(active_settings, anchor_store)
     schema_index_store = SchemaIndexRunStore(active_settings.sqlite_path)
     schema_index_manager = SchemaIndexManager(active_settings, schema_index_store)
+    schema_pruning_store = SchemaPruningRunStore(active_settings.sqlite_path)
+    schema_pruning_manager = SchemaPruningManager(
+        active_settings,
+        schema_pruning_store,
+        anchor_store,
+        schema_index_store,
+    )
     active_executor = executor or TendMethodExecutor(active_settings, store)
     orchestrator = RunOrchestrator(
         store,
@@ -60,6 +70,8 @@ def create_app(
         anchor_store.initialize()
         schema_index_store.initialize()
         schema_index_store.recover_interrupted()
+        schema_pruning_store.initialize()
+        schema_pruning_store.recover_interrupted()
         await orchestrator.start()
         try:
             yield
@@ -79,6 +91,8 @@ def create_app(
     app.state.anchor_pipeline = anchor_pipeline
     app.state.schema_index_store = schema_index_store
     app.state.schema_index_manager = schema_index_manager
+    app.state.schema_pruning_store = schema_pruning_store
+    app.state.schema_pruning_manager = schema_pruning_manager
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[
@@ -379,6 +393,40 @@ def create_app(
             return request.app.state.schema_index_manager.cancel(run_id)
         except KeyError as error:
             raise HTTPException(status_code=404, detail=str(error)) from error
+
+    @app.post(
+        "/api/new-methods/schema-pruning-runs",
+        response_model=SchemaPruningRunView,
+        status_code=status.HTTP_202_ACCEPTED,
+    )
+    def create_schema_pruning_run(
+        payload: SchemaPruningRunCreate, request: Request
+    ) -> SchemaPruningRunView:
+        try:
+            run = request.app.state.schema_pruning_manager.create(payload)
+            return request.app.state.schema_pruning_manager.start(run.run_id)
+        except (ValueError, RuntimeError) as error:
+            raise HTTPException(status_code=409, detail=str(error)) from error
+
+    @app.get(
+        "/api/new-methods/schema-pruning-runs",
+        response_model=list[SchemaPruningRunView],
+    )
+    def list_schema_pruning_runs(
+        request: Request,
+        limit: int = Query(default=50, ge=1, le=500),
+    ) -> list[SchemaPruningRunView]:
+        return request.app.state.schema_pruning_store.list(limit)
+
+    @app.get(
+        "/api/new-methods/schema-pruning-runs/{run_id}",
+        response_model=SchemaPruningRunView,
+    )
+    def get_schema_pruning_run(run_id: str, request: Request) -> SchemaPruningRunView:
+        run = request.app.state.schema_pruning_store.get(run_id)
+        if run is None:
+            raise HTTPException(status_code=404, detail="schema pruning run not found")
+        return run
 
     @app.get("/")
     def root() -> dict[str, str]:
