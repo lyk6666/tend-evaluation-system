@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   CircleDashed,
   Clock3,
+  Code2,
   Database,
   FileJson2,
   GitBranch,
@@ -27,6 +28,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "./api";
 import { IndexBuildingPanel } from "./IndexBuildingPanel";
 import { SchemaPruningPanel } from "./SchemaPruningPanel";
+import { MQLGenerationPanel } from "./MQLGenerationPanel";
 import type {
   AnchorRelation,
   AnchorRunView,
@@ -53,7 +55,7 @@ const LABELS: Record<string, string> = {
 const terminal = new Set(["completed", "failed"]);
 const ACTIVE_RUN_KEY = "tend-new-methods-anchor-run";
 const ACTIVE_WORKSPACE_KEY = "tend-new-methods-workspace";
-type Workspace = "bundle" | "index" | "pruning";
+type Workspace = "bundle" | "index" | "pruning" | "mql";
 
 export function NewMethodsPage({
   health,
@@ -71,7 +73,7 @@ export function NewMethodsPage({
   const [error, setError] = useState("");
   const [workspace, setWorkspace] = useState<Workspace>(() => {
     const stored = window.localStorage.getItem(ACTIVE_WORKSPACE_KEY);
-    return stored === "index" || stored === "pruning" ? stored : "bundle";
+    return stored === "index" || stored === "pruning" || stored === "mql" ? stored : "bundle";
   });
 
   const changeWorkspace = (value: Workspace) => {
@@ -197,6 +199,7 @@ export function NewMethodsPage({
         <button className={workspace === "bundle" ? "active" : ""} onClick={() => changeWorkspace("bundle")}><Tags size={15} /><span><strong>Bundle extraction</strong><small>Question to RetrievalBundle</small></span></button>
         <button className={workspace === "index" ? "active" : ""} onClick={() => changeWorkspace("index")}><Database size={15} /><span><strong>Index building</strong><small>Schema, values, references</small></span></button>
         <button className={workspace === "pruning" ? "active" : ""} onClick={() => changeWorkspace("pruning")}><GitBranch size={15} /><span><strong>Schema pruning</strong><small>Score and ground paths</small></span></button>
+        <button className={workspace === "mql" ? "active" : ""} onClick={() => changeWorkspace("mql")}><Code2 size={15} /><span><strong>MQL generation</strong><small>Generate, validate, execute</small></span></button>
       </nav>
 
       {workspace === "bundle" ? <main className="anchor-main">
@@ -265,7 +268,7 @@ export function NewMethodsPage({
             )}
           </div>
         </section>
-      </main> : workspace === "index" ? <IndexBuildingPanel health={health} /> : <SchemaPruningPanel />}
+      </main> : workspace === "index" ? <IndexBuildingPanel health={health} /> : workspace === "pruning" ? <SchemaPruningPanel /> : <MQLGenerationPanel />}
     </div>
   );
 }

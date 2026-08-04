@@ -3,6 +3,7 @@ import type {
   Catalog,
   EvaluationResults,
   Health,
+  MQLGenerationRunView,
   ResultRecordPage,
   RunCreate,
   RunView,
@@ -93,6 +94,17 @@ export const api = {
     index_id: string;
     config: SchemaPruningRunView["config"];
   }) => request<SchemaPruningRunView>("/api/new-methods/schema-pruning-runs", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  }),
+  mqlGenerationRuns: (limit = 50) =>
+    request<MQLGenerationRunView[]>(`/api/new-methods/mql-generation-runs?limit=${limit}`),
+  mqlGenerationRun: (runId: string) =>
+    request<MQLGenerationRunView>(`/api/new-methods/mql-generation-runs/${runId}`),
+  createMQLGenerationRun: (payload: {
+    pruning_run_id: string;
+    config: MQLGenerationRunView["config"];
+  }) => request<MQLGenerationRunView>("/api/new-methods/mql-generation-runs", {
     method: "POST",
     body: JSON.stringify(payload)
   })

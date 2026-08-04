@@ -502,3 +502,86 @@ export type SchemaPruningRunView = {
   unresolved_target_ids: string[];
   failure: string | null;
 };
+
+export type MQLValidationIssue = {
+  severity: "error" | "warning" | "info";
+  code: string;
+  message: string;
+  stage_index: number | null;
+  path: string | null;
+};
+
+export type MQLRepairAttempt = {
+  attempt: number;
+  input_issues: MQLValidationIssue[];
+  collection: string | null;
+  pipeline: Array<Record<string, unknown>>;
+  rationale: string;
+  validation_issues: MQLValidationIssue[];
+  accepted: boolean;
+};
+
+export type MQLExecutionPreview = {
+  ok: boolean;
+  collection: string;
+  rows: Array<Record<string, unknown>>;
+  row_count: number;
+  limit: number;
+  possibly_truncated: boolean;
+  latency_ms: number | null;
+  error: string | null;
+};
+
+export type MQLCandidate = {
+  combination_rank: number;
+  schema_score: number;
+  status: "generation_failed" | "generated" | "invalid" | "valid" | "execution_failed" | "executed" | "selected";
+  collection: string | null;
+  pipeline: Array<Record<string, unknown>>;
+  mql: string | null;
+  rationale: string;
+  used_paths: string[];
+  validation_issues: MQLValidationIssue[];
+  repairs: MQLRepairAttempt[];
+  execution: MQLExecutionPreview | null;
+  failure: string | null;
+};
+
+export type TENDMetricResult = {
+  available: boolean;
+  reason: string;
+  record_id: number | string | null;
+  track: "canonical" | "robustness" | null;
+  EXC: number | null;
+  EXF1: number | null;
+  outcome: string | null;
+  claim_axes: Record<string, string>;
+  gold_row_count: number | null;
+  predicted_row_count: number | null;
+};
+
+export type MQLGenerationRunView = {
+  run_id: string;
+  pruning_run_id: string;
+  bundle_run_id: string;
+  database_id: string;
+  question: string;
+  model_id: string;
+  status: "created" | "running" | "completed" | "failed";
+  created_at: string;
+  updated_at: string;
+  config: {
+    combination_ranks: number[];
+    max_repair_attempts: number;
+    preview_limit: number;
+  };
+  stages: PruningStageTrace[];
+  candidates: MQLCandidate[];
+  selected_combination_rank: number | null;
+  final_collection: string | null;
+  final_pipeline: Array<Record<string, unknown>>;
+  final_mql: string | null;
+  final_result: MQLExecutionPreview | null;
+  tend_metrics: TENDMetricResult;
+  failure: string | null;
+};
