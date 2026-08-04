@@ -6,6 +6,8 @@ import type {
   ResultRecordPage,
   RunCreate,
   RunView,
+  SchemaIndexRunView,
+  SchemaPruningRunView,
   WorkItem
 } from "./types";
 
@@ -64,5 +66,34 @@ export const api = {
     body: JSON.stringify(payload)
   }),
   deleteAnchorRun: (runId: string) =>
-    request<void>(`/api/new-methods/anchor-runs/${runId}`, { method: "DELETE" })
+    request<void>(`/api/new-methods/anchor-runs/${runId}`, { method: "DELETE" }),
+  schemaIndexDatabases: () =>
+    request<string[]>("/api/new-methods/schema-indexes/databases"),
+  schemaIndexRuns: (limit = 50) =>
+    request<SchemaIndexRunView[]>(`/api/new-methods/schema-index-runs?limit=${limit}`),
+  schemaIndexRun: (runId: string) =>
+    request<SchemaIndexRunView>(`/api/new-methods/schema-index-runs/${runId}`),
+  createSchemaIndexRun: (databaseId: string) =>
+    request<SchemaIndexRunView>("/api/new-methods/schema-index-runs", {
+      method: "POST",
+      body: JSON.stringify({ database_id: databaseId })
+    }),
+  pauseSchemaIndexRun: (runId: string) =>
+    request<SchemaIndexRunView>(`/api/new-methods/schema-index-runs/${runId}/pause`, { method: "POST" }),
+  resumeSchemaIndexRun: (runId: string) =>
+    request<SchemaIndexRunView>(`/api/new-methods/schema-index-runs/${runId}/resume`, { method: "POST" }),
+  cancelSchemaIndexRun: (runId: string) =>
+    request<SchemaIndexRunView>(`/api/new-methods/schema-index-runs/${runId}/cancel`, { method: "POST" }),
+  schemaPruningRuns: (limit = 50) =>
+    request<SchemaPruningRunView[]>(`/api/new-methods/schema-pruning-runs?limit=${limit}`),
+  schemaPruningRun: (runId: string) =>
+    request<SchemaPruningRunView>(`/api/new-methods/schema-pruning-runs/${runId}`),
+  createSchemaPruningRun: (payload: {
+    bundle_run_id: string;
+    index_id: string;
+    config: SchemaPruningRunView["config"];
+  }) => request<SchemaPruningRunView>("/api/new-methods/schema-pruning-runs", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  })
 };

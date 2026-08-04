@@ -51,6 +51,12 @@ export type Health = {
     model: string;
     reasoning_effort: string;
   };
+  embedding_provider?: {
+    configured: boolean;
+    ready: boolean;
+    model: string;
+    base_url: string;
+  };
   defaults: { concurrency: number };
   execution: { available: boolean; message: string };
 };
@@ -343,5 +349,156 @@ export type AnchorRunView = {
     relations: RetrievalBundleRelation[];
     value_constraints: RetrievalValueConstraint[];
   } | null;
+  failure: string | null;
+};
+
+export type IndexStageTrace = {
+  stage: string;
+  status: "pending" | "running" | "completed" | "failed" | "paused" | "cancelled";
+  progress: number;
+  summary: string;
+  artifact: Record<string, unknown>;
+  started_at: string | null;
+  completed_at: string | null;
+  error: string | null;
+};
+
+export type SchemaIndexRunView = {
+  run_id: string;
+  index_id: string;
+  database_id: string;
+  status: "created" | "running" | "pausing" | "paused" | "completed" | "failed" | "cancelled";
+  created_at: string;
+  updated_at: string;
+  embedding_model: string;
+  stages: IndexStageTrace[];
+  node_count: number;
+  collection_count: number;
+  value_count: number;
+  dynamic_key_count: number;
+  array_path_count: number;
+  reference_edge_count: number;
+  embedding_count: number;
+  schema_hash: string | null;
+  artifact_dir: string | null;
+  failure: string | null;
+};
+
+export type PruningStageTrace = {
+  stage: string;
+  status: "pending" | "running" | "completed" | "failed";
+  progress: number;
+  summary: string;
+  artifact: unknown;
+  started_at: string | null;
+  completed_at: string | null;
+  duration_ms: number | null;
+  error: string | null;
+};
+
+export type SearchRequest = {
+  target_id: string;
+  kind: string;
+  role: string;
+  query_text: string;
+  context_text: string;
+  expected_types: string[];
+  value_constraints: Array<Record<string, unknown>>;
+};
+
+export type PathCandidate = {
+  target_id: string;
+  path_id: string;
+  collection: string;
+  path: string;
+  score: number;
+  signals: {
+    lexical: number;
+    semantic: number;
+    name: number;
+    context: number | null;
+    type: number | null;
+    value: number | null;
+    exact_contains: boolean | null;
+    range_contains: boolean | null;
+  };
+  binding: Record<string, unknown> | null;
+};
+
+export type SchemaReferenceEdge = {
+  source_id: string;
+  target_id: string;
+  source_distinct_count: number;
+  matched_distinct_count: number;
+  overlap: number;
+  inferred_by: "declared" | "strict_inference";
+};
+
+export type RelationshipEvaluation = {
+  relation_index: number;
+  relation_type: string;
+  source_target_id: string;
+  target_target_id: string;
+  source_path_id: string;
+  target_path_id: string;
+  score: number;
+  distance: number | null;
+  common_ancestor_id: string | null;
+  connector_node_ids: string[];
+  reference_edges: SchemaReferenceEdge[];
+  resolved: boolean;
+};
+
+export type CandidateCombination = {
+  rank: number;
+  selections: Record<string, string>;
+  local_score: number;
+  relationship_score: number;
+  final_score: number;
+  relationship_evaluations: RelationshipEvaluation[];
+  connector_node_ids: string[];
+  reference_edges: SchemaReferenceEdge[];
+};
+
+export type PrunedSchema = {
+  combination_rank: number;
+  score: number;
+  nodes: Array<{
+    id: string;
+    collection: string;
+    path: string;
+    parent_id: string | null;
+    types: string[];
+    role: "target" | "connector" | "ancestor";
+    target_ids: string[];
+    binding: Record<string, unknown> | null;
+  }>;
+  reference_edges: SchemaReferenceEdge[];
+};
+
+export type SchemaPruningRunView = {
+  run_id: string;
+  bundle_run_id: string;
+  index_id: string;
+  database_id: string;
+  status: "created" | "running" | "completed" | "failed";
+  created_at: string;
+  updated_at: string;
+  config: {
+    primary_top_k: number;
+    supporting_top_k: number;
+    beam_width: number;
+    final_top_k: number;
+    alternative_margin: number;
+    local_weight: number;
+    relationship_weight: number;
+  };
+  stages: PruningStageTrace[];
+  search_requests: SearchRequest[];
+  candidates_by_target: Record<string, PathCandidate[]>;
+  relationship_evaluations: RelationshipEvaluation[];
+  combinations: CandidateCombination[];
+  pruned_schemas: PrunedSchema[];
+  unresolved_target_ids: string[];
   failure: string | null;
 };

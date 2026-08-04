@@ -8,7 +8,9 @@ import {
   CheckCircle2,
   CircleDashed,
   Clock3,
+  Database,
   FileJson2,
+  GitBranch,
   LoaderCircle,
   Maximize2,
   Minus,
@@ -23,6 +25,8 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "./api";
+import { IndexBuildingPanel } from "./IndexBuildingPanel";
+import { SchemaPruningPanel } from "./SchemaPruningPanel";
 import type {
   AnchorRelation,
   AnchorRunView,
@@ -48,6 +52,8 @@ const LABELS: Record<string, string> = {
 
 const terminal = new Set(["completed", "failed"]);
 const ACTIVE_RUN_KEY = "tend-new-methods-anchor-run";
+const ACTIVE_WORKSPACE_KEY = "tend-new-methods-workspace";
+type Workspace = "bundle" | "index" | "pruning";
 
 export function NewMethodsPage({
   health,
@@ -63,6 +69,15 @@ export function NewMethodsPage({
   const [selectedStage, setSelectedStage] = useState("normalization");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [workspace, setWorkspace] = useState<Workspace>(() => {
+    const stored = window.localStorage.getItem(ACTIVE_WORKSPACE_KEY);
+    return stored === "index" || stored === "pruning" ? stored : "bundle";
+  });
+
+  const changeWorkspace = (value: Workspace) => {
+    setWorkspace(value);
+    window.localStorage.setItem(ACTIVE_WORKSPACE_KEY, value);
+  };
 
   const refresh = useCallback(async () => {
     const values = await api.anchorRuns();
@@ -172,15 +187,19 @@ export function NewMethodsPage({
           <button onClick={() => onNavigate("evaluation")}><ArrowLeft size={16} /> Evaluation</button>
           <button className="active"><Sparkles size={16} /> New Methods</button>
         </nav>
-        <button className="refresh-button" onClick={() => void refresh()} title="Refresh anchor runs">
-          <RotateCw size={15} />
-        </button>
+        {workspace === "bundle" && <button className="refresh-button" onClick={() => void refresh()} title="Refresh anchor runs"><RotateCw size={15} /></button>}
         <div className={`readiness ${health?.provider.ready ? "ready" : "waiting"}`}>
           <Activity size={16} /> {health?.provider.ready ? health.provider.model : "Fallback ready"}
         </div>
       </header>
 
-      <main className="anchor-main">
+      <nav className="new-method-tabs" aria-label="New Methods workflow">
+        <button className={workspace === "bundle" ? "active" : ""} onClick={() => changeWorkspace("bundle")}><Tags size={15} /><span><strong>Bundle extraction</strong><small>Question to RetrievalBundle</small></span></button>
+        <button className={workspace === "index" ? "active" : ""} onClick={() => changeWorkspace("index")}><Database size={15} /><span><strong>Index building</strong><small>Schema, values, references</small></span></button>
+        <button className={workspace === "pruning" ? "active" : ""} onClick={() => changeWorkspace("pruning")}><GitBranch size={15} /><span><strong>Schema pruning</strong><small>Score and ground paths</small></span></button>
+      </nav>
+
+      {workspace === "bundle" ? <main className="anchor-main">
         <section className="anchor-intro">
           <div>
             <span className="eyebrow">NEW METHOD · RETRIEVAL PREPARATION</span>
@@ -246,7 +265,7 @@ export function NewMethodsPage({
             )}
           </div>
         </section>
-      </main>
+      </main> : workspace === "index" ? <IndexBuildingPanel health={health} /> : <SchemaPruningPanel />}
     </div>
   );
 }
