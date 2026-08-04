@@ -33,6 +33,9 @@ from .schema_store import SchemaIndexRunStore
 from .retrieval_contracts import SchemaPruningRunCreate, SchemaPruningRunView
 from .retrieval_store import SchemaPruningRunStore
 from .schema_retrieval import SchemaPruningManager
+from .mql_contracts import MQLGenerationRunCreate, MQLGenerationRunView
+from .mql_generation import MQLGenerationManager
+from .mql_store import MQLGenerationRunStore
 from .store import AnchorRunStore, RunStore
 from .workloads import build_work_items
 
@@ -55,6 +58,13 @@ def create_app(
         anchor_store,
         schema_index_store,
     )
+    mql_generation_store = MQLGenerationRunStore(active_settings.sqlite_path)
+    mql_generation_manager = MQLGenerationManager(
+        active_settings,
+        mql_generation_store,
+        schema_pruning_store,
+        anchor_store,
+    )
     active_executor = executor or TendMethodExecutor(active_settings, store)
     orchestrator = RunOrchestrator(
         store,
@@ -72,6 +82,8 @@ def create_app(
         schema_index_store.recover_interrupted()
         schema_pruning_store.initialize()
         schema_pruning_store.recover_interrupted()
+        mql_generation_store.initialize()
+        mql_generation_store.recover_interrupted()
         await orchestrator.start()
         try:
             yield
@@ -93,6 +105,8 @@ def create_app(
     app.state.schema_index_manager = schema_index_manager
     app.state.schema_pruning_store = schema_pruning_store
     app.state.schema_pruning_manager = schema_pruning_manager
+    app.state.mql_generation_store = mql_generation_store
+    app.state.mql_generation_manager = mql_generation_manager
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[
@@ -426,6 +440,40 @@ def create_app(
         run = request.app.state.schema_pruning_store.get(run_id)
         if run is None:
             raise HTTPException(status_code=404, detail="schema pruning run not found")
+        return run
+
+    @app.post(
+        "/api/new-methods/mql-generation-runs",
+        response_model=MQLGenerationRunView,
+        status_code=status.HTTP_202_ACCEPTED,
+    )
+    def create_mql_generation_run(
+        payload: MQLGenerationRunCreate, request: Request
+    ) -> MQLGenerationRunView:
+        try:
+            run = request.app.state.mql_generation_manager.create(payload)
+            return request.app.state.mql_generation_manager.start(run.run_id)
+        except (ValueError, RuntimeError) as error:
+            raise HTTPException(status_code=409, detail=str(error)) from error
+
+    @app.get(
+        "/api/new-methods/mql-generation-runs",
+        response_model=list[MQLGenerationRunView],
+    )
+    def list_mql_generation_runs(
+        request: Request,
+        limit: int = Query(default=50, ge=1, le=500),
+    ) -> list[MQLGenerationRunView]:
+        return request.app.state.mql_generation_store.list(limit)
+
+    @app.get(
+        "/api/new-methods/mql-generation-runs/{run_id}",
+        response_model=MQLGenerationRunView,
+    )
+    def get_mql_generation_run(run_id: str, request: Request) -> MQLGenerationRunView:
+        run = request.app.state.mql_generation_store.get(run_id)
+        if run is None:
+            raise HTTPException(status_code=404, detail="MQL generation run not found")
         return run
 
     @app.get("/")
