@@ -1,3 +1,5 @@
+import json
+import sqlite3
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -98,6 +100,39 @@ def test_retrieval_pipeline_persists_all_six_stages(tmp_path: Path) -> None:
     }
     assert all("mention" not in item.model_dump() for item in finished.retrieval_bundle.targets)
     assert finished.retrieval_bundle.value_constraints[0].value == 2021
+
+
+def test_anchor_history_reads_legacy_relation_shape_without_losing_runs(tmp_path: Path) -> None:
+    settings = settings_for(tmp_path)
+    store = AnchorRunStore(settings.sqlite_path)
+    store.initialize()
+    pipeline = AnchorExtractionPipeline(settings, store)
+    created = pipeline.create_run(
+        AnchorRunCreate(question=QUESTION, mode=AnchorRunMode.DETERMINISTIC)
+    )
+    pipeline.run(created.run_id)
+
+    with sqlite3.connect(settings.sqlite_path) as connection:
+        row = connection.execute(
+            "SELECT payload_json FROM anchor_runs WHERE run_id = ?", (created.run_id,)
+        ).fetchone()
+        payload = json.loads(row[0])
+        for relation in payload["retrieval_bundle"]["relations"]:
+            relation["source_anchor_id"] = relation.pop("source")
+            relation["target_anchor_id"] = relation.pop("target")
+            relation["relation_type"] = relation.pop("type")
+            relation["source"] = "rule"
+        connection.execute(
+            "UPDATE anchor_runs SET payload_json = ? WHERE run_id = ?",
+            (json.dumps(payload), created.run_id),
+        )
+
+    restored = store.list(50)
+    assert len(restored) == 1
+    assert restored[0].retrieval_bundle is not None
+    assert restored[0].retrieval_bundle.relations
+    assert restored[0].retrieval_bundle.relations[0].source
+    assert restored[0].retrieval_bundle.relations[0].target
 
 
 def test_anchor_api_is_available_without_dataset_or_mongodb(tmp_path: Path) -> None:

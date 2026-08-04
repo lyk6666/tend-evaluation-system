@@ -241,6 +241,21 @@ class RetrievalBundleRelation(BaseModel):
         "derived_from",
     ]
 
+    @model_validator(mode="before")
+    @classmethod
+    def migrate_legacy_relation(cls, value: Any) -> Any:
+        """Read bundles persisted before the minimal relation contract was introduced."""
+        if not isinstance(value, dict) or ("target" in value and "type" in value):
+            return value
+        migrated = dict(value)
+        if "source_anchor_id" in migrated:
+            migrated["source"] = migrated["source_anchor_id"]
+        if "target_anchor_id" in migrated:
+            migrated["target"] = migrated["target_anchor_id"]
+        if "relation_type" in migrated:
+            migrated["type"] = migrated["relation_type"]
+        return migrated
+
 
 class RetrievalValueConstraint(BaseModel):
     kind: Literal["temporal", "value", "comparison"]
