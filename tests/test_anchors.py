@@ -96,6 +96,7 @@ def test_retrieval_pipeline_persists_all_six_stages(tmp_path: Path) -> None:
         "relations",
         "value_constraints",
     }
+    assert all("mention" not in item.model_dump() for item in finished.retrieval_bundle.targets)
     assert finished.retrieval_bundle.value_constraints[0].value == 2021
 
 
@@ -117,6 +118,7 @@ def test_anchor_api_is_available_without_dataset_or_mongodb(tmp_path: Path) -> N
             "relations",
             "value_constraints",
         }
+        assert all("mention" not in item for item in fetched.json()["retrieval_bundle"]["targets"])
         deleted = client.delete(f"/api/new-methods/anchor-runs/{run_id}")
         assert deleted.status_code == 204
 

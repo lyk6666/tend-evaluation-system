@@ -47,6 +47,7 @@ const LABELS: Record<string, string> = {
 };
 
 const terminal = new Set(["completed", "failed"]);
+const ACTIVE_RUN_KEY = "tend-new-methods-anchor-run";
 
 export function NewMethodsPage({
   health,
@@ -64,7 +65,21 @@ export function NewMethodsPage({
   const [error, setError] = useState("");
 
   const refresh = useCallback(async () => {
-    setRuns(await api.anchorRuns());
+    const values = await api.anchorRuns();
+    setRuns(values);
+    setActive((current) => {
+      const wantedId = current?.run_id ?? window.localStorage.getItem(ACTIVE_RUN_KEY);
+      const selected = values.find((item) => item.run_id === wantedId) ?? values[0] ?? null;
+      if (selected) {
+        window.localStorage.setItem(ACTIVE_RUN_KEY, selected.run_id);
+        setQuestion(selected.question);
+        setMode(selected.mode);
+        const stage = selected.stages.find((item) => item.status === "running")
+          ?? [...selected.stages].reverse().find((item) => item.status === "completed");
+        setSelectedStage(stage?.stage ?? "normalization");
+      }
+      return selected;
+    });
   }, []);
 
   useEffect(() => {
@@ -103,6 +118,7 @@ export function NewMethodsPage({
         timezone: "Asia/Shanghai"
       });
       setActive(run);
+      window.localStorage.setItem(ACTIVE_RUN_KEY, run.run_id);
       setSelectedStage("normalization");
       setRuns((current) => [run, ...current.filter((item) => item.run_id !== run.run_id)]);
     } catch (value) {
@@ -116,6 +132,7 @@ export function NewMethodsPage({
     try {
       const run = await api.anchorRun(runId);
       setActive(run);
+      window.localStorage.setItem(ACTIVE_RUN_KEY, run.run_id);
       setQuestion(run.question);
       setMode(run.mode);
       const current = run.stages.find((item) => item.status === "running")
@@ -129,7 +146,10 @@ export function NewMethodsPage({
   const remove = async (runId: string) => {
     await api.deleteAnchorRun(runId);
     setRuns((current) => current.filter((item) => item.run_id !== runId));
-    if (active?.run_id === runId) setActive(null);
+    if (active?.run_id === runId) {
+      window.localStorage.removeItem(ACTIVE_RUN_KEY);
+      setActive(null);
+    }
   };
 
   const progress = useMemo(() => {
@@ -203,7 +223,7 @@ export function NewMethodsPage({
                 <textarea value={question} onChange={(event) => setQuestion(event.target.value)} rows={5} placeholder="Enter a natural-language query" />
                 <button disabled={busy || question.trim().length < 3} onClick={() => void start()}>{busy ? <LoaderCircle size={17} className="spin" /> : <Sparkles size={17} />} Prepare retrieval</button>
               </div>
-              <div className="anchor-composer-foot"><span>7 persisted stages · no schema or MongoDB access</span><span>{question.length} characters</span></div>
+              <div className="anchor-composer-foot"><span>6 persisted stages · no schema or MongoDB access</span><span>{question.length} characters</span></div>
             </section>
 
             {active ? (
@@ -558,7 +578,7 @@ function GraphView({ nodes, edges, restrictions, rootIds, warnings }: { nodes: T
 
 function BundleView({ value }: { value: NonNullable<AnchorRunView["retrieval_bundle"]> }) {
   const targetNames = new Map(value.targets.map((item) => [item.id, item.canonical]));
-  return <div className="anchor-stack"><section className="anchor-bundle-hero"><CheckCircle2 size={24} /><div><span className="eyebrow">MINIMAL RETRIEVALBUNDLE</span><h2>Ready for schema scoring</h2><p>{value.targets.length} targets · {value.relations.length} relations · {value.value_constraints.length} value constraints</p></div><strong>4<small>top-level fields</small></strong></section><div className="anchor-card-grid">{value.targets.map((target) => <article className="anchor-card" key={target.id}><div><code>{target.id}</code><span className={`anchor-kind ${target.kind}`}>{target.kind.replaceAll("_", " ")}</span><strong>{target.role}</strong></div><h3>{target.canonical}</h3><p>“{target.mention}”</p><footer>{target.parent_hints.map((item) => <span key={item}>{item}</span>)}</footer>{target.expected_types.length > 0 && <div className="anchor-chips small">{target.expected_types.map((item) => <span key={item}>{item}</span>)}</div>}{target.aliases.length > 0 && <small className="anchor-alternatives">Aliases: {target.aliases.join(" · ")}</small>}</article>)}</div>{value.relations.length > 0 && <Section title="Minimal relations" count={value.relations.length}><div className="anchor-relations">{value.relations.map((relation, index) => <div key={`${relation.source}-${relation.target}-${index}`}><code>{targetNames.get(relation.source) ?? relation.source}</code><span>{relation.type.replaceAll("_", " ")}</span><code>{targetNames.get(relation.target) ?? relation.target}</code><p>Structural link retained for coherent subtree selection.</p></div>)}</div></Section>}{value.value_constraints.length > 0 && <Section title="Value constraints" count={value.value_constraints.length}><div className="anchor-bundle-constraints">{value.value_constraints.map((constraint, index) => <article key={`${constraint.kind}-${index}`}><span>{constraint.kind}</span><strong>{constraint.operator ?? "context"} · {String(constraint.value)}</strong><p>{constraint.target_ids.map((id) => targetNames.get(id) ?? id).join(" · ")}</p></article>)}</div></Section>}<Raw value={value} /></div>;
+  return <div className="anchor-stack"><section className="anchor-bundle-hero"><CheckCircle2 size={24} /><div><span className="eyebrow">MINIMAL RETRIEVALBUNDLE</span><h2>Ready for schema scoring</h2><p>{value.targets.length} targets · {value.relations.length} relations · {value.value_constraints.length} value constraints</p></div><strong>4<small>top-level fields</small></strong></section><div className="anchor-card-grid">{value.targets.map((target) => <article className="anchor-card" key={target.id}><div><code>{target.id}</code><span className={`anchor-kind ${target.kind}`}>{target.kind.replaceAll("_", " ")}</span><strong>{target.role}</strong></div><h3>{target.canonical}</h3><footer>{target.parent_hints.map((item) => <span key={item}>{item}</span>)}</footer>{target.expected_types.length > 0 && <div className="anchor-chips small">{target.expected_types.map((item) => <span key={item}>{item}</span>)}</div>}{target.aliases.length > 0 && <small className="anchor-alternatives">Aliases: {target.aliases.join(" · ")}</small>}</article>)}</div>{value.relations.length > 0 && <Section title="Minimal relations" count={value.relations.length}><div className="anchor-relations">{value.relations.map((relation, index) => <div key={`${relation.source}-${relation.target}-${index}`}><code>{targetNames.get(relation.source) ?? relation.source}</code><span>{relation.type.replaceAll("_", " ")}</span><code>{targetNames.get(relation.target) ?? relation.target}</code><p>Structural link retained for coherent subtree selection.</p></div>)}</div></Section>}{value.value_constraints.length > 0 && <Section title="Value constraints" count={value.value_constraints.length}><div className="anchor-bundle-constraints">{value.value_constraints.map((constraint, index) => <article key={`${constraint.kind}-${index}`}><span>{constraint.kind}</span><strong>{constraint.operator ?? "context"} · {String(constraint.value)}</strong><p>{constraint.target_ids.map((id) => targetNames.get(id) ?? id).join(" · ")}</p></article>)}</div></Section>}<Raw value={value} /></div>;
 }
 
 function Hero({ icon, label, title, detail }: { icon: React.ReactNode; label: string; title: string; detail: string }) {

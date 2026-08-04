@@ -270,7 +270,6 @@ export type RetrievalBundleTarget = {
   id: string;
   kind: AnchorKind;
   role: "primary" | "supporting";
-  mention: string;
   canonical: string;
   aliases: string[];
   parent_hints: string[];

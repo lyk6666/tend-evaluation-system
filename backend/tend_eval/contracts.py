@@ -224,7 +224,6 @@ class RetrievalBundleTarget(BaseModel):
     id: str
     kind: AnchorKind
     role: Literal["primary", "supporting"]
-    mention: str
     canonical: str
     aliases: list[str] = Field(default_factory=list)
     parent_hints: list[str] = Field(default_factory=list)

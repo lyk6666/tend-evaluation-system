@@ -1205,7 +1205,6 @@ class RetrievalBundleBuilder:
                 id=item.anchor_id,
                 kind=item.kind,
                 role=item.retrieval_role,
-                mention=item.surface,
                 canonical=item.canonical,
                 aliases=item.aliases,
                 parent_hints=item.parent_hints,
