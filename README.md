@@ -4,8 +4,8 @@ TEND Evaluation System is a local-first research dashboard for running the offic
 [TEND](https://github.com/Jinwei-Lu/Text-to-NoSQL) baselines and full SAG v3 solver,
 monitoring long benchmark runs, and inspecting EXC, EXF1, claim-axis, and outcome results.
 
-The top-bar **New Methods** workspace implements the complete retrieval-preparation and
-schema-pruning workflow in three tabs:
+The top-bar **New Methods** workspace implements the complete retrieval-to-query workflow
+in four tabs:
 
 1. **Bundle extraction** persists six inspectable artifacts: normalization,
    retrieval-target extraction, supporting-field inference, restriction binding, the
@@ -21,11 +21,25 @@ schema-pruning workflow in three tabs:
    scoring signal, evaluates structural and reference relationships, performs joint beam
    search, and keeps the best plus near-best schema alternatives. Every intermediate stage
    survives refresh. Final connected schemas are available as zoomable, selectable trees.
+4. **MQL generation** sends the question and each selected compact pruned-schema alternative
+   directly to the configured model. It persists independent candidate pipelines, enforces
+   read-only and pruned-path constraints, validates `$lookup` stages against supplied
+   reference edges, probes MongoDB, performs a bounded error-grounded repair, executes every
+   valid candidate, and selects the highest-scoring successful schema alternative.
 
 Only entities, fields, and requested derived concepts become retrieval targets. Temporal
 values and constants constrain path scoring. Aggregation, grouping, sorting, tie handling,
-units, duplicate representations, EAV layouts, and derived-query construction remain the
-responsibility of later planning stages.
+and derived-query construction are handled by MQL generation rather than schema retrieval;
+units, duplicate representations, and EAV layouts remain outside the current retrieval
+scope.
+
+The MQL workspace shows six inspectable stages: input preparation, candidate generation,
+deterministic validation, bounded repair, execution and selection, and TEND evaluation.
+Its final view presents four TEND result dimensions: EXC, EXF1, the mutually exclusive
+outcome bucket, and claim-axis slices. These are computed only when the selected database
+and question exactly match an official canonical or colloquial TEND record. A custom
+question has no gold query, so the UI reports all four dimensions as unavailable instead
+of fabricating correctness scores.
 
 The system keeps the official TEND implementation as an external checkout. It does not
 vendor or republish upstream source code. The adapter records the upstream commit for every
@@ -124,6 +138,8 @@ OPENAI_API_KEY=your-key-here
 OPENAI_BASE_URL=https://api.openai.com/v1
 TEND_EVAL_MODEL=gpt-5.6-luna
 TEND_EVAL_REASONING_EFFORT=medium
+TEND_EVAL_MAX_GENERATION_ATTEMPTS=2
+TEND_EVAL_GENERATION_MONGO_MAX_TIME_MS=30000
 TEND_EVAL_EMBEDDING_API_KEY=
 TEND_EVAL_EMBEDDING_MODEL=text-embedding-3-small
 TEND_EVAL_EMBEDDING_BASE_URL=https://api.openai.com/v1
@@ -134,6 +150,11 @@ TEND_EVAL_MONGO_MAX_TIME_MS=120000
 left empty it falls back to `OPENAI_API_KEY`. An empty, malformed, or dimensionally
 inconsistent embedding response never completes a build. The request is retried according
 to `TEND_EVAL_PROVIDER_MAX_RETRIES`, and completed batches remain resumable checkpoints.
+
+MQL provider calls use the same retry policy. `TEND_EVAL_MAX_GENERATION_ATTEMPTS` bounds
+non-empty structured-output attempts for each candidate or repair, while
+`TEND_EVAL_GENERATION_MONGO_MAX_TIME_MS` bounds validation probes and result previews. The
+repair-attempt count and preview-row limit remain configurable per run in the UI.
 
 Validated indexes are stored under
 `data/runtime/schema_indexes/<database-id>/<index-id>/`. Exact value membership remains in
