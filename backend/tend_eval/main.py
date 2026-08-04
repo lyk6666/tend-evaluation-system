@@ -27,6 +27,9 @@ from .evaluation import load_result_records, load_results, resolve_export
 from .executor import TendMethodExecutor
 from .health import collect_health
 from .orchestrator import RunOrchestrator, WorkExecutor
+from .schema_contracts import SchemaIndexRunCreate, SchemaIndexRunView
+from .schema_indexing import SchemaIndexManager
+from .schema_store import SchemaIndexRunStore
 from .store import AnchorRunStore, RunStore
 from .workloads import build_work_items
 
@@ -40,6 +43,8 @@ def create_app(
     store = RunStore(active_settings.sqlite_path)
     anchor_store = AnchorRunStore(active_settings.sqlite_path)
     anchor_pipeline = AnchorExtractionPipeline(active_settings, anchor_store)
+    schema_index_store = SchemaIndexRunStore(active_settings.sqlite_path)
+    schema_index_manager = SchemaIndexManager(active_settings, schema_index_store)
     active_executor = executor or TendMethodExecutor(active_settings, store)
     orchestrator = RunOrchestrator(
         store,
@@ -53,6 +58,8 @@ def create_app(
     async def lifespan(app: FastAPI):
         active_settings.runtime_dir.mkdir(parents=True, exist_ok=True)
         anchor_store.initialize()
+        schema_index_store.initialize()
+        schema_index_store.recover_interrupted()
         await orchestrator.start()
         try:
             yield
@@ -70,6 +77,8 @@ def create_app(
     app.state.orchestrator = orchestrator
     app.state.anchor_store = anchor_store
     app.state.anchor_pipeline = anchor_pipeline
+    app.state.schema_index_store = schema_index_store
+    app.state.schema_index_manager = schema_index_manager
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[
@@ -99,6 +108,9 @@ def create_app(
             "reasoning_effort": current.reasoning_effort,
             "concurrency": current.default_concurrency,
             "api_key_configured": current.api_key_configured,
+            "embedding_model": current.embedding_model,
+            "embedding_base_url": current.embedding_base_url,
+            "embedding_ready": current.embedding_ready,
         }
 
     @app.post("/api/runs", response_model=RunView, status_code=status.HTTP_202_ACCEPTED)
@@ -299,6 +311,74 @@ def create_app(
         if run.status not in {"completed", "failed"}:
             raise HTTPException(status_code=409, detail="an active anchor run cannot be deleted")
         request.app.state.anchor_store.delete(run_id)
+
+    @app.get("/api/new-methods/schema-indexes/databases", response_model=list[str])
+    def schema_index_databases(request: Request) -> list[str]:
+        return request.app.state.schema_index_manager.databases()
+
+    @app.post(
+        "/api/new-methods/schema-index-runs",
+        response_model=SchemaIndexRunView,
+        status_code=status.HTTP_202_ACCEPTED,
+    )
+    def create_schema_index_run(
+        payload: SchemaIndexRunCreate, request: Request
+    ) -> SchemaIndexRunView:
+        try:
+            run = request.app.state.schema_index_manager.create(payload)
+            return request.app.state.schema_index_manager.start(run.run_id)
+        except (ValueError, RuntimeError) as error:
+            raise HTTPException(status_code=409, detail=str(error)) from error
+
+    @app.get(
+        "/api/new-methods/schema-index-runs",
+        response_model=list[SchemaIndexRunView],
+    )
+    def list_schema_index_runs(
+        request: Request,
+        limit: int = Query(default=50, ge=1, le=500),
+    ) -> list[SchemaIndexRunView]:
+        return request.app.state.schema_index_store.list(limit)
+
+    @app.get(
+        "/api/new-methods/schema-index-runs/{run_id}",
+        response_model=SchemaIndexRunView,
+    )
+    def get_schema_index_run(run_id: str, request: Request) -> SchemaIndexRunView:
+        run = request.app.state.schema_index_store.get(run_id)
+        if run is None:
+            raise HTTPException(status_code=404, detail="schema index run not found")
+        return run
+
+    @app.post(
+        "/api/new-methods/schema-index-runs/{run_id}/pause",
+        response_model=SchemaIndexRunView,
+    )
+    def pause_schema_index_run(run_id: str, request: Request) -> SchemaIndexRunView:
+        try:
+            return request.app.state.schema_index_manager.pause(run_id)
+        except KeyError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+
+    @app.post(
+        "/api/new-methods/schema-index-runs/{run_id}/resume",
+        response_model=SchemaIndexRunView,
+    )
+    def resume_schema_index_run(run_id: str, request: Request) -> SchemaIndexRunView:
+        try:
+            return request.app.state.schema_index_manager.resume(run_id)
+        except (KeyError, ValueError) as error:
+            raise HTTPException(status_code=409, detail=str(error)) from error
+
+    @app.post(
+        "/api/new-methods/schema-index-runs/{run_id}/cancel",
+        response_model=SchemaIndexRunView,
+    )
+    def cancel_schema_index_run(run_id: str, request: Request) -> SchemaIndexRunView:
+        try:
+            return request.app.state.schema_index_manager.cancel(run_id)
+        except KeyError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
 
     @app.get("/")
     def root() -> dict[str, str]:

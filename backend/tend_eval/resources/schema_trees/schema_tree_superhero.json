@@ -1,0 +1,4653 @@
+{
+  "database_name": "superhero",
+  "total_collections": 4,
+  "collections": {
+    "ability_catalog": {
+      "field_count": 8,
+      "has_objects": true,
+      "has_array_of_objects": true,
+      "has_multi_array_paths": true,
+      "total_documents": 173,
+      "schema": {
+        "_id": {
+          "type": "string",
+          "missingOrNullPercentage": 0.0
+        },
+        "catalog_type": {
+          "type": "string",
+          "missingOrNullPercentage": 0.0
+        },
+        "power": {
+          "type": "object",
+          "properties": {
+            "power_id": {
+              "type": "integer",
+              "missingOrNullPercentage": 0.0
+            },
+            "name": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "family": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 3.47
+        },
+        "heroes_by_alignment": {
+          "type": "object",
+          "properties": {
+            "bad": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "alignment": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 15.57
+            },
+            "good": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "alignment": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 5.99
+            },
+            "neutral": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "alignment": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 39.52
+            },
+            "unknown_alignment": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "alignment": {
+                        "type": null,
+                        "missingOrNullPercentage": 100.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 63.47
+            }
+          },
+          "missingOrNullPercentage": 3.47
+        },
+        "query_views": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "view_id": {
+                "type": "string",
+                "missingOrNullPercentage": 0.0
+              },
+              "alignment_members_by_name": {
+                "type": "object",
+                "properties": {
+                  "bad": {
+                    "type": "object",
+                    "properties": {
+                      "hero_count": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "heroes": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "hero_id": {
+                              "type": "integer",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "hero_name": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "full_name_presence_state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "alignment": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "presence_state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 15.57
+                  },
+                  "good": {
+                    "type": "object",
+                    "properties": {
+                      "hero_count": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "heroes": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "hero_id": {
+                              "type": "integer",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "hero_name": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "full_name_presence_state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "alignment": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "presence_state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 5.99
+                  },
+                  "neutral": {
+                    "type": "object",
+                    "properties": {
+                      "hero_count": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "heroes": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "hero_id": {
+                              "type": "integer",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "hero_name": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "full_name_presence_state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "alignment": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "presence_state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 39.52
+                  },
+                  "unknown_alignment": {
+                    "type": "object",
+                    "properties": {
+                      "hero_count": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "heroes": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "hero_id": {
+                              "type": "integer",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "hero_name": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "full_name_presence_state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "alignment": {
+                              "type": null,
+                              "missingOrNullPercentage": 100.0
+                            },
+                            "presence_state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 63.47
+                  }
+                },
+                "missingOrNullPercentage": 0.0
+              }
+            }
+          },
+          "missingOrNullPercentage": 3.47
+        },
+        "schema_state": {
+          "type": "object",
+          "properties": {
+            "catalog_entry": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "hero_memberships": {
+              "type": "string",
+              "missingOrNullPercentage": 3.47
+            },
+            "hero_values": {
+              "type": "string",
+              "missingOrNullPercentage": 95.56
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "attribute": {
+          "type": "object",
+          "properties": {
+            "attribute_id": {
+              "type": "integer",
+              "missingOrNullPercentage": 0.0
+            },
+            "name": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 95.56
+        },
+        "values_by_bucket": {
+          "type": "object",
+          "properties": {
+            "capable": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "value": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "elite": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "value": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "legendary": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "value": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "limited": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "value": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 95.56
+        }
+      }
+    },
+    "alignment_rosters": {
+      "field_count": 5,
+      "has_objects": true,
+      "has_array_of_objects": true,
+      "has_multi_array_paths": false,
+      "total_documents": 4,
+      "schema": {
+        "_id": {
+          "type": "string",
+          "missingOrNullPercentage": 0.0
+        },
+        "alignment": {
+          "type": "object",
+          "properties": {
+            "alignment_id": {
+              "type": "integer",
+              "missingOrNullPercentage": 0.0
+            },
+            "name": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "publishers_by_name": {
+          "type": "object",
+          "properties": {
+            "abc_studios": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 66.67
+            },
+            "dark_horse_comics": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 33.33
+            },
+            "dc_comics": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "george_lucas": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 33.33
+            },
+            "hanna_barbera": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 66.67
+            },
+            "harpercollins": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 66.67
+            },
+            "icon_comics": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 33.33
+            },
+            "idw_publishing": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 66.67
+            },
+            "image_comics": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 33.33
+            },
+            "j__k__rowling": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 66.67
+            },
+            "marvel_comics": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "microsoft": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 66.67
+            },
+            "nbc___heroes": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 33.33
+            },
+            "rebellion": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 66.67
+            },
+            "shueisha": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 33.33
+            },
+            "sony_pictures": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 66.67
+            },
+            "south_park": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 66.67
+            },
+            "star_trek": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 66.67
+            },
+            "syfy": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 66.67
+            },
+            "team_epic_tv": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 33.33
+            },
+            "titan_books": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 66.67
+            },
+            "universal_studios": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 66.67
+            },
+            "unknown_publisher": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "wildstorm": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 33.33
+            },
+            "j__r__r__tolkien": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "publisher_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 50.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "power_families_by_bucket": {
+          "type": "object",
+          "properties": {
+            "cosmic": {
+              "type": "object",
+              "properties": {
+                "members": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "energy": {
+              "type": "object",
+              "properties": {
+                "members": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "mental": {
+              "type": "object",
+              "properties": {
+                "members": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "mobility": {
+              "type": "object",
+              "properties": {
+                "members": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "physical": {
+              "type": "object",
+              "properties": {
+                "members": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "specialized": {
+              "type": "object",
+              "properties": {
+                "members": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "tactical": {
+              "type": "object",
+              "properties": {
+                "members": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "schema_state": {
+          "type": "object",
+          "properties": {
+            "alignment": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "heroes": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        }
+      }
+    },
+    "hero_dossiers": {
+      "field_count": 9,
+      "has_objects": true,
+      "has_array_of_objects": true,
+      "has_multi_array_paths": true,
+      "total_documents": 750,
+      "schema": {
+        "_id": {
+          "type": "string",
+          "missingOrNullPercentage": 0.0
+        },
+        "identity": {
+          "type": "object",
+          "properties": {
+            "source_db": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "hero_id": {
+              "type": "integer",
+              "missingOrNullPercentage": 0.0
+            },
+            "source_table": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "record_presence_state": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "profile": {
+          "type": "object",
+          "properties": {
+            "hero_name": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "full_name": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "missingOrNullPercentage": 16.27
+                },
+                "presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "body_scale": {
+              "type": "object",
+              "properties": {
+                "height_cm": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 7.73
+                    },
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "bucket": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "weight_kg": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 8.53
+                    },
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "bucket": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "universe": {
+          "type": "object",
+          "properties": {
+            "publisher": {
+              "type": "object",
+              "properties": {
+                "publisher_id": {
+                  "type": "integer",
+                  "missingOrNullPercentage": 0.4
+                },
+                "name": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.4
+                    },
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "bucket_key": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "alignment": {
+              "type": "object",
+              "properties": {
+                "alignment_id": {
+                  "type": "integer",
+                  "missingOrNullPercentage": 0.8
+                },
+                "name": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.8
+                    },
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "bucket_key": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "appearance": {
+          "type": "object",
+          "properties": {
+            "gender": {
+              "type": "object",
+              "properties": {
+                "gender_id": {
+                  "type": "integer",
+                  "missingOrNullPercentage": 0.0
+                },
+                "name": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "race": {
+              "type": "object",
+              "properties": {
+                "race_id": {
+                  "type": "integer",
+                  "missingOrNullPercentage": 0.53
+                },
+                "name": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.53
+                    },
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "color_refs_by_role": {
+              "type": "object",
+              "properties": {
+                "eye": {
+                  "type": "object",
+                  "properties": {
+                    "states": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "colour_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "colour": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "source_table": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "hair": {
+                  "type": "object",
+                  "properties": {
+                    "states": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "colour_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "colour": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "source_table": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "skin": {
+                  "type": "object",
+                  "properties": {
+                    "states": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "colour_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "colour": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "source_table": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "appearance_signature": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "ability_matrix": {
+          "type": "object",
+          "properties": {
+            "attributes_by_name": {
+              "type": "object",
+              "properties": {
+                "intelligence": {
+                  "type": "object",
+                  "properties": {
+                    "attribute_id": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "name": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "observations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "hero_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "value": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "score": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "integer",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "band": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "scale": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 16.82
+                },
+                "strength": {
+                  "type": "object",
+                  "properties": {
+                    "attribute_id": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "name": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "observations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "hero_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "value": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "score": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "integer",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "band": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "scale": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 16.82
+                },
+                "speed": {
+                  "type": "object",
+                  "properties": {
+                    "attribute_id": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "name": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "observations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "hero_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "value": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "score": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "integer",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "band": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "scale": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 16.82
+                },
+                "durability": {
+                  "type": "object",
+                  "properties": {
+                    "attribute_id": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "name": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "observations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "hero_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "value": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "score": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "integer",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "band": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "scale": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 16.82
+                },
+                "power": {
+                  "type": "object",
+                  "properties": {
+                    "attribute_id": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "name": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "observations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "hero_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "value": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "score": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "integer",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "band": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "scale": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 16.82
+                },
+                "combat": {
+                  "type": "object",
+                  "properties": {
+                    "attribute_id": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "name": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "observations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "hero_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "value": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "score": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "integer",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "band": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "scale": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 16.82
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "attribute_score_buckets": {
+              "type": "object",
+              "properties": {
+                "capable": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "attribute_key": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "attribute_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "value": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 64.75
+                },
+                "elite": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "attribute_key": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "attribute_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "value": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 43.39
+                },
+                "legendary": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "attribute_key": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "attribute_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "value": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 61.5
+                },
+                "limited": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "attribute_key": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "attribute_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "value": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 47.39
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "attribute_presence_state": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "powers": {
+          "type": "object",
+          "properties": {
+            "powers_by_family": {
+              "type": "object",
+              "properties": {
+                "energy": {
+                  "type": "object",
+                  "properties": {
+                    "powers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "power_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "name": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "power_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 67.69
+                },
+                "physical": {
+                  "type": "object",
+                  "properties": {
+                    "powers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "power_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "name": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "power_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 38.32
+                },
+                "specialized": {
+                  "type": "object",
+                  "properties": {
+                    "powers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "power_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "name": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "power_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 26.84
+                },
+                "tactical": {
+                  "type": "object",
+                  "properties": {
+                    "powers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "power_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "name": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "power_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 64.49
+                },
+                "mental": {
+                  "type": "object",
+                  "properties": {
+                    "powers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "power_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "name": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "power_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 66.98
+                },
+                "mobility": {
+                  "type": "object",
+                  "properties": {
+                    "powers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "power_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "name": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "power_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 51.47
+                },
+                "cosmic": {
+                  "type": "object",
+                  "properties": {
+                    "powers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "power_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "name": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "power_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 85.25
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "power_count": {
+              "type": "integer",
+              "missingOrNullPercentage": 0.0
+            },
+            "power_presence_state": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "query_views": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "view_id": {
+                "type": "string",
+                "missingOrNullPercentage": 0.0
+              },
+              "power_families_by_bucket": {
+                "type": "object",
+                "properties": {
+                  "energy": {
+                    "type": "object",
+                    "properties": {
+                      "power_count": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "powers": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "power_id": {
+                              "type": "integer",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "name": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "presence_state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 67.69
+                  },
+                  "physical": {
+                    "type": "object",
+                    "properties": {
+                      "power_count": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "powers": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "power_id": {
+                              "type": "integer",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "name": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "presence_state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 38.32
+                  },
+                  "specialized": {
+                    "type": "object",
+                    "properties": {
+                      "power_count": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "powers": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "power_id": {
+                              "type": "integer",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "name": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "presence_state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 26.84
+                  },
+                  "tactical": {
+                    "type": "object",
+                    "properties": {
+                      "power_count": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "powers": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "power_id": {
+                              "type": "integer",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "name": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "presence_state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 64.49
+                  },
+                  "mental": {
+                    "type": "object",
+                    "properties": {
+                      "power_count": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "powers": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "power_id": {
+                              "type": "integer",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "name": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "presence_state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 66.98
+                  },
+                  "mobility": {
+                    "type": "object",
+                    "properties": {
+                      "power_count": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "powers": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "power_id": {
+                              "type": "integer",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "name": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "presence_state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 51.47
+                  },
+                  "cosmic": {
+                    "type": "object",
+                    "properties": {
+                      "power_count": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "powers": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "power_id": {
+                              "type": "integer",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "name": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "presence_state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 85.25
+                  }
+                },
+                "missingOrNullPercentage": 50.0
+              },
+              "attribute_bands_by_name": {
+                "type": "object",
+                "properties": {
+                  "combat": {
+                    "type": "object",
+                    "properties": {
+                      "band": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "value": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 16.82
+                  },
+                  "durability": {
+                    "type": "object",
+                    "properties": {
+                      "band": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "value": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 16.82
+                  },
+                  "intelligence": {
+                    "type": "object",
+                    "properties": {
+                      "band": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "value": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 16.82
+                  },
+                  "power": {
+                    "type": "object",
+                    "properties": {
+                      "band": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "value": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 16.82
+                  },
+                  "speed": {
+                    "type": "object",
+                    "properties": {
+                      "band": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "value": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 16.82
+                  },
+                  "strength": {
+                    "type": "object",
+                    "properties": {
+                      "band": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "value": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 16.82
+                  }
+                },
+                "missingOrNullPercentage": 49.97
+              }
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "schema_state": {
+          "type": "object",
+          "properties": {
+            "profile": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "full_name": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "publisher": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "alignment": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "powers": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "attributes": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "height_cm": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "weight_kg": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        }
+      }
+    },
+    "publisher_universes": {
+      "field_count": 6,
+      "has_objects": true,
+      "has_array_of_objects": true,
+      "has_multi_array_paths": true,
+      "total_documents": 25,
+      "schema": {
+        "_id": {
+          "type": "string",
+          "missingOrNullPercentage": 0.0
+        },
+        "publisher": {
+          "type": "object",
+          "properties": {
+            "publisher_id": {
+              "type": "integer",
+              "missingOrNullPercentage": 0.0
+            },
+            "name": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "hero_count": {
+              "type": "integer",
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "alignment_buckets_by_name": {
+          "type": "object",
+          "properties": {
+            "bad": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 52.0
+            },
+            "good": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 4.0
+            },
+            "neutral": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 86.96
+            },
+            "unknown_alignment": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 73.33
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "power_families_by_bucket": {
+          "type": "object",
+          "properties": {
+            "cosmic": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 44.0
+            },
+            "energy": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 40.0
+            },
+            "mental": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 28.0
+            },
+            "mobility": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 20.0
+            },
+            "physical": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 4.0
+            },
+            "specialized": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 4.0
+            },
+            "tactical": {
+              "type": "object",
+              "properties": {
+                "heroes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "hero_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "hero_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "full_name_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 28.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "query_views": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "view_id": {
+                "type": "string",
+                "missingOrNullPercentage": 0.0
+              },
+              "alignment_power_matrix_by_alignment": {
+                "type": "object",
+                "properties": {
+                  "bad": {
+                    "type": "object",
+                    "properties": {
+                      "hero_count": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_families_by_bucket": {
+                        "type": "object",
+                        "properties": {
+                          "energy": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 8.33
+                          },
+                          "mental": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 25.0
+                          },
+                          "mobility": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 25.0
+                          },
+                          "physical": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 8.33
+                          },
+                          "specialized": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "tactical": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 33.33
+                          },
+                          "cosmic": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 30.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 52.0
+                  },
+                  "good": {
+                    "type": "object",
+                    "properties": {
+                      "hero_count": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_families_by_bucket": {
+                        "type": "object",
+                        "properties": {
+                          "cosmic": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 54.17
+                          },
+                          "energy": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 54.17
+                          },
+                          "mental": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 29.17
+                          },
+                          "mobility": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 20.83
+                          },
+                          "physical": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 4.17
+                          },
+                          "specialized": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 4.17
+                          },
+                          "tactical": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 29.17
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 4.0
+                  },
+                  "neutral": {
+                    "type": "object",
+                    "properties": {
+                      "hero_count": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_families_by_bucket": {
+                        "type": "object",
+                        "properties": {
+                          "physical": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "specialized": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "tactical": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "cosmic": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "energy": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "mental": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "mobility": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 86.96
+                  },
+                  "unknown_alignment": {
+                    "type": "object",
+                    "properties": {
+                      "hero_count": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "power_families_by_bucket": {
+                        "type": "object",
+                        "properties": {
+                          "cosmic": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 25.0
+                          },
+                          "energy": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 50.0
+                          },
+                          "mental": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 25.0
+                          },
+                          "mobility": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "physical": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 50.0
+                          },
+                          "specialized": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 25.0
+                          },
+                          "tactical": {
+                            "type": "object",
+                            "properties": {
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hero_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "hero_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_id": {
+                                      "type": "integer",
+                                      "missingOrNullPercentage": 0.0
+                                    },
+                                    "power_name": {
+                                      "type": "string",
+                                      "missingOrNullPercentage": 0.0
+                                    }
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 50.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 73.33
+                  }
+                },
+                "missingOrNullPercentage": 0.0
+              }
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "schema_state": {
+          "type": "object",
+          "properties": {
+            "publisher_name": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "heroes": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "sample_hero_dossiers": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        }
+      }
+    }
+  }
+}

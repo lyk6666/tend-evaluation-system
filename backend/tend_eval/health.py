@@ -57,6 +57,14 @@ def collect_health(settings: Settings) -> dict[str, Any]:
             "model": settings.model,
             "reasoning_effort": settings.reasoning_effort,
         },
+        "embedding_provider": {
+            "configured": settings.embedding_ready,
+            "stub": settings.llm_stub,
+            "ready": settings.embedding_ready,
+            "base_url": settings.embedding_base_url,
+            "model": settings.embedding_model,
+            "batch_size": settings.embedding_batch_size,
+        },
         "defaults": {"concurrency": settings.default_concurrency},
         "execution": {
             "available": bool(ready and settings.provider_ready),

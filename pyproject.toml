@@ -32,7 +32,7 @@ tend-eval-api = "tend_eval.main:run"
 where = ["backend"]
 
 [tool.setuptools.package-data]
-tend_eval = ["resources/*.json"]
+tend_eval = ["resources/*.json", "resources/schema_trees/*.json"]
 
 [tool.pytest.ini_options]
 pythonpath = ["backend"]

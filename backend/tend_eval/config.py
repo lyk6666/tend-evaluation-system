@@ -47,6 +47,18 @@ class Settings(BaseSettings):
     mongodb_uri: str = Field(
         default="mongodb://127.0.0.1:27017", alias="MONGODB_URI"
     )
+    embedding_api_key: str | None = Field(
+        default=None, alias="TEND_EVAL_EMBEDDING_API_KEY"
+    )
+    embedding_base_url: str = Field(
+        default="https://api.openai.com/v1", alias="TEND_EVAL_EMBEDDING_BASE_URL"
+    )
+    embedding_model: str = Field(
+        default="text-embedding-3-small", alias="TEND_EVAL_EMBEDDING_MODEL"
+    )
+    embedding_batch_size: int = Field(
+        default=64, ge=1, le=2048, alias="TEND_EVAL_EMBEDDING_BATCH_SIZE"
+    )
     evaluation_mongo_max_time_ms: int = Field(
         default=120_000,
         ge=30_000,
@@ -95,6 +107,23 @@ class Settings(BaseSettings):
     @property
     def sqlite_path(self) -> Path:
         return self.runtime_dir / "tend-evaluation.sqlite3"
+
+    @property
+    def schema_tree_dir(self) -> Path:
+        return Path(__file__).with_name("resources") / "schema_trees"
+
+    @property
+    def schema_index_dir(self) -> Path:
+        return self.runtime_dir / "schema_indexes"
+
+    @property
+    def active_embedding_api_key(self) -> str | None:
+        return self.embedding_api_key or self.openai_api_key
+
+    @property
+    def embedding_ready(self) -> bool:
+        key = self.active_embedding_api_key
+        return bool(key and not key.startswith("your-")) or self.llm_stub
 
     @property
     def api_key_configured(self) -> bool:

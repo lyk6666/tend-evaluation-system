@@ -1,0 +1,2607 @@
+{
+  "database_name": "student_club",
+  "total_collections": 2,
+  "collections": {
+    "club_event_plans_v2": {
+      "field_count": 8,
+      "has_objects": true,
+      "has_array_of_objects": true,
+      "has_multi_array_paths": true,
+      "total_documents": 42,
+      "schema": {
+        "_id": {
+          "type": "string",
+          "missingOrNullPercentage": 0.0
+        },
+        "event": {
+          "type": "object",
+          "properties": {
+            "event_id": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "name": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "type": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "status": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "schedule": {
+              "type": "object",
+              "properties": {
+                "starts_at": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "date_presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "notes": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "missingOrNullPercentage": 52.38
+                },
+                "presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "venue": {
+          "type": "object",
+          "properties": {
+            "location": {
+              "type": "string",
+              "missingOrNullPercentage": 14.29
+            },
+            "presence_state": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "budget_by_category": {
+          "type": "object",
+          "properties": {
+            "Food": {
+              "type": "object",
+              "properties": {
+                "presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "budget_count": {
+                  "type": "integer",
+                  "missingOrNullPercentage": 0.0
+                },
+                "amount_total": {
+                  "type": "number",
+                  "missingOrNullPercentage": 0.0
+                },
+                "spent_total": {
+                  "type": "number",
+                  "missingOrNullPercentage": 0.0
+                },
+                "remaining_total": {
+                  "type": "number",
+                  "missingOrNullPercentage": 0.0
+                },
+                "status_by_state": {
+                  "type": "object",
+                  "properties": {
+                    "Planning": {
+                      "type": "object",
+                      "properties": {
+                        "presence_state": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "budget_count": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "remaining_total": {
+                          "type": "number",
+                          "missingOrNullPercentage": 0.0
+                        }
+                      },
+                      "missingOrNullPercentage": 81.82
+                    },
+                    "Open": {
+                      "type": "object",
+                      "properties": {
+                        "presence_state": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "budget_count": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "remaining_total": {
+                          "type": "number",
+                          "missingOrNullPercentage": 0.0
+                        }
+                      },
+                      "missingOrNullPercentage": 57.14
+                    },
+                    "Closed": {
+                      "type": "object",
+                      "properties": {
+                        "presence_state": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "budget_count": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "remaining_total": {
+                          "type": "number",
+                          "missingOrNullPercentage": 0.0
+                        }
+                      },
+                      "missingOrNullPercentage": 52.63
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "budgets": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "budget_id": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "category": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "status": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "amounts": {
+                        "type": "object",
+                        "properties": {
+                          "allocated": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "spent": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "remaining": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "overspent": {
+                            "type": "boolean",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "expense_events": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "expense_id": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "description": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "expense_date": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "cost": {
+                              "type": "number",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "approval": {
+                              "type": "object",
+                              "properties": {
+                                "value": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "presence_state": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "is_approved": {
+                                  "type": "boolean",
+                                  "missingOrNullPercentage": 0.0
+                                }
+                              },
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "paid_by": {
+                              "type": "object",
+                              "properties": {
+                                "member_id": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "member_presence_state": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                }
+                              },
+                              "missingOrNullPercentage": 0.0
+                            }
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "schema_state": {
+                        "type": "object",
+                        "properties": {
+                          "expenses": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "category": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "expense_chain": {
+                  "type": "object",
+                  "properties": {
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "expense_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "approved_cost_total": {
+                      "type": "number",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 47.62
+            },
+            "Advertisement": {
+              "type": "object",
+              "properties": {
+                "presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "budget_count": {
+                  "type": "integer",
+                  "missingOrNullPercentage": 0.0
+                },
+                "amount_total": {
+                  "type": "number",
+                  "missingOrNullPercentage": 0.0
+                },
+                "spent_total": {
+                  "type": "number",
+                  "missingOrNullPercentage": 0.0
+                },
+                "remaining_total": {
+                  "type": "number",
+                  "missingOrNullPercentage": 0.0
+                },
+                "status_by_state": {
+                  "type": "object",
+                  "properties": {
+                    "Open": {
+                      "type": "object",
+                      "properties": {
+                        "presence_state": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "budget_count": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "remaining_total": {
+                          "type": "number",
+                          "missingOrNullPercentage": 0.0
+                        }
+                      },
+                      "missingOrNullPercentage": 46.67
+                    },
+                    "Closed": {
+                      "type": "object",
+                      "properties": {
+                        "presence_state": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "budget_count": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "remaining_total": {
+                          "type": "number",
+                          "missingOrNullPercentage": 0.0
+                        }
+                      },
+                      "missingOrNullPercentage": 53.85
+                    },
+                    "Planning": {
+                      "type": "object",
+                      "properties": {
+                        "presence_state": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "budget_count": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "remaining_total": {
+                          "type": "number",
+                          "missingOrNullPercentage": 0.0
+                        }
+                      },
+                      "missingOrNullPercentage": 66.67
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "budgets": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "budget_id": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "category": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "status": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "amounts": {
+                        "type": "object",
+                        "properties": {
+                          "allocated": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "spent": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "remaining": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "overspent": {
+                            "type": "boolean",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "expense_events": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "expense_id": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "description": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "expense_date": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "cost": {
+                              "type": "number",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "approval": {
+                              "type": "object",
+                              "properties": {
+                                "value": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 14.29
+                                },
+                                "presence_state": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "is_approved": {
+                                  "type": "boolean",
+                                  "missingOrNullPercentage": 0.0
+                                }
+                              },
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "paid_by": {
+                              "type": "object",
+                              "properties": {
+                                "member_id": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "member_presence_state": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                }
+                              },
+                              "missingOrNullPercentage": 0.0
+                            }
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "schema_state": {
+                        "type": "object",
+                        "properties": {
+                          "expenses": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "category": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "expense_chain": {
+                  "type": "object",
+                  "properties": {
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "expense_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "approved_cost_total": {
+                      "type": "number",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 61.54
+            },
+            "Parking": {
+              "type": "object",
+              "properties": {
+                "presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "budget_count": {
+                  "type": "integer",
+                  "missingOrNullPercentage": 0.0
+                },
+                "amount_total": {
+                  "type": "number",
+                  "missingOrNullPercentage": 0.0
+                },
+                "spent_total": {
+                  "type": "number",
+                  "missingOrNullPercentage": 0.0
+                },
+                "remaining_total": {
+                  "type": "number",
+                  "missingOrNullPercentage": 0.0
+                },
+                "status_by_state": {
+                  "type": "object",
+                  "properties": {
+                    "Closed": {
+                      "type": "object",
+                      "properties": {
+                        "presence_state": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "budget_count": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "remaining_total": {
+                          "type": "number",
+                          "missingOrNullPercentage": 0.0
+                        }
+                      },
+                      "missingOrNullPercentage": 57.14
+                    },
+                    "Open": {
+                      "type": "object",
+                      "properties": {
+                        "presence_state": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "budget_count": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "remaining_total": {
+                          "type": "number",
+                          "missingOrNullPercentage": 0.0
+                        }
+                      },
+                      "missingOrNullPercentage": 40.0
+                    },
+                    "Planning": {
+                      "type": "object",
+                      "properties": {
+                        "presence_state": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "budget_count": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "remaining_total": {
+                          "type": "number",
+                          "missingOrNullPercentage": 0.0
+                        }
+                      },
+                      "missingOrNullPercentage": 50.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "budgets": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "budget_id": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "category": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "status": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "amounts": {
+                        "type": "object",
+                        "properties": {
+                          "allocated": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "spent": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "remaining": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "overspent": {
+                            "type": "boolean",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "expense_events": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "expense_id": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "description": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "expense_date": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "cost": {
+                              "type": "number",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "approval": {
+                              "type": "object",
+                              "properties": {
+                                "value": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "presence_state": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "is_approved": {
+                                  "type": "boolean",
+                                  "missingOrNullPercentage": 0.0
+                                }
+                              },
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "paid_by": {
+                              "type": "object",
+                              "properties": {
+                                "member_id": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "member_presence_state": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                }
+                              },
+                              "missingOrNullPercentage": 0.0
+                            }
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "schema_state": {
+                        "type": "object",
+                        "properties": {
+                          "expenses": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "category": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "expense_chain": {
+                  "type": "object",
+                  "properties": {
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "expense_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "approved_cost_total": {
+                      "type": "number",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 78.12
+            },
+            "Speaker Gifts": {
+              "type": "object",
+              "properties": {
+                "presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "budget_count": {
+                  "type": "integer",
+                  "missingOrNullPercentage": 0.0
+                },
+                "amount_total": {
+                  "type": "number",
+                  "missingOrNullPercentage": 0.0
+                },
+                "spent_total": {
+                  "type": "number",
+                  "missingOrNullPercentage": 0.0
+                },
+                "remaining_total": {
+                  "type": "number",
+                  "missingOrNullPercentage": 0.0
+                },
+                "status_by_state": {
+                  "type": "object",
+                  "properties": {
+                    "Closed": {
+                      "type": "object",
+                      "properties": {
+                        "presence_state": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "budget_count": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "remaining_total": {
+                          "type": "number",
+                          "missingOrNullPercentage": 0.0
+                        }
+                      },
+                      "missingOrNullPercentage": 57.14
+                    },
+                    "Open": {
+                      "type": "object",
+                      "properties": {
+                        "presence_state": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "budget_count": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "remaining_total": {
+                          "type": "number",
+                          "missingOrNullPercentage": 0.0
+                        }
+                      },
+                      "missingOrNullPercentage": 40.0
+                    },
+                    "Planning": {
+                      "type": "object",
+                      "properties": {
+                        "presence_state": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "budget_count": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "remaining_total": {
+                          "type": "number",
+                          "missingOrNullPercentage": 0.0
+                        }
+                      },
+                      "missingOrNullPercentage": 50.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "budgets": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "budget_id": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "category": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "status": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "amounts": {
+                        "type": "object",
+                        "properties": {
+                          "allocated": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "spent": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "remaining": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "overspent": {
+                            "type": "boolean",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "expense_events": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "expense_id": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "description": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "expense_date": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "cost": {
+                              "type": "number",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "approval": {
+                              "type": "object",
+                              "properties": {
+                                "value": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "presence_state": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "is_approved": {
+                                  "type": "boolean",
+                                  "missingOrNullPercentage": 0.0
+                                }
+                              },
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "paid_by": {
+                              "type": "object",
+                              "properties": {
+                                "member_id": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "member_presence_state": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                }
+                              },
+                              "missingOrNullPercentage": 0.0
+                            }
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "schema_state": {
+                        "type": "object",
+                        "properties": {
+                          "expenses": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "category": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "expense_chain": {
+                  "type": "object",
+                  "properties": {
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "expense_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "approved_cost_total": {
+                      "type": "number",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 78.12
+            },
+            "Club T-Shirts": {
+              "type": "object",
+              "properties": {
+                "presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "budget_count": {
+                  "type": "integer",
+                  "missingOrNullPercentage": 0.0
+                },
+                "amount_total": {
+                  "type": "number",
+                  "missingOrNullPercentage": 0.0
+                },
+                "spent_total": {
+                  "type": "number",
+                  "missingOrNullPercentage": 0.0
+                },
+                "remaining_total": {
+                  "type": "number",
+                  "missingOrNullPercentage": 0.0
+                },
+                "status_by_state": {
+                  "type": "object",
+                  "properties": {
+                    "Closed": {
+                      "type": "object",
+                      "properties": {
+                        "presence_state": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "budget_count": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "remaining_total": {
+                          "type": "number",
+                          "missingOrNullPercentage": 0.0
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "budgets": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "budget_id": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "category": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "status": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "amounts": {
+                        "type": "object",
+                        "properties": {
+                          "allocated": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "spent": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "remaining": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "overspent": {
+                            "type": "boolean",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "expense_events": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "expense_id": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "description": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "expense_date": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "cost": {
+                              "type": "number",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "approval": {
+                              "type": "object",
+                              "properties": {
+                                "value": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "presence_state": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "is_approved": {
+                                  "type": "boolean",
+                                  "missingOrNullPercentage": 0.0
+                                }
+                              },
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "paid_by": {
+                              "type": "object",
+                              "properties": {
+                                "member_id": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "member_presence_state": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                }
+                              },
+                              "missingOrNullPercentage": 0.0
+                            }
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "schema_state": {
+                        "type": "object",
+                        "properties": {
+                          "expenses": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "category": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "expense_chain": {
+                  "type": "object",
+                  "properties": {
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "expense_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "approved_cost_total": {
+                      "type": "number",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 90.91
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "attendance": {
+          "type": "object",
+          "properties": {
+            "presence_state": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "attendee_count": {
+              "type": "integer",
+              "missingOrNullPercentage": 0.0
+            },
+            "attendees": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "member_presence_state": {
+                    "type": "string",
+                    "missingOrNullPercentage": 0.0
+                  },
+                  "account": {
+                    "type": "object",
+                    "properties": {
+                      "member_id": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "profile": {
+                        "type": "object",
+                        "properties": {
+                          "first_name": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "last_name": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "display_name": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "email": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "phone": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "presence_state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "shirt_size": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "club_role": {
+                        "type": "object",
+                        "properties": {
+                          "position": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "is_officer": {
+                            "type": "boolean",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "academic_profile": {
+                        "type": "object",
+                        "properties": {
+                          "major_id": {
+                            "type": "string",
+                            "missingOrNullPercentage": 2.38
+                          },
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "major": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "department": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "college": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 2.38
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "address_profile": {
+                        "type": "object",
+                        "properties": {
+                          "zip": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "zip_code": {
+                            "type": "object",
+                            "properties": {
+                              "city": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "county": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "short_state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "zip_type": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 0.0
+                  },
+                  "attendance_context": {
+                    "type": "object",
+                    "properties": {
+                      "role": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "role_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "shirt_size": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 0.0
+                  },
+                  "finance_by_category": {
+                    "type": "object",
+                    "properties": {
+                      "Food": {
+                        "type": "object",
+                        "properties": {
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "expense_count": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "expense_total": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "income_context": {
+                            "type": "object",
+                            "properties": {
+                              "member_income_total": {
+                                "type": "number",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "income_presence_state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "expenses": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "expense_id": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "cost": {
+                                  "type": "number",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "approved_presence_state": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                }
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 93.06
+                      },
+                      "Advertisement": {
+                        "type": "object",
+                        "properties": {
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "expense_count": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "expense_total": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "income_context": {
+                            "type": "object",
+                            "properties": {
+                              "member_income_total": {
+                                "type": "number",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "income_presence_state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "expenses": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "expense_id": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "cost": {
+                                  "type": "number",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "approved_presence_state": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                }
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 91.43
+                      },
+                      "Speaker Gifts": {
+                        "type": "object",
+                        "properties": {
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "expense_count": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "expense_total": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "income_context": {
+                            "type": "object",
+                            "properties": {
+                              "member_income_total": {
+                                "type": "number",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "income_presence_state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "expenses": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "expense_id": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "cost": {
+                                  "type": "number",
+                                  "missingOrNullPercentage": 0.0
+                                },
+                                "approved_presence_state": {
+                                  "type": "string",
+                                  "missingOrNullPercentage": 0.0
+                                }
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 95.08
+                      }
+                    },
+                    "missingOrNullPercentage": 0.0
+                  }
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "participation_by_role": {
+              "type": "object",
+              "properties": {
+                "Inactive": {
+                  "type": "object",
+                  "properties": {
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "attendee_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "members": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "member_id": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "name": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 67.57
+                },
+                "Member": {
+                  "type": "object",
+                  "properties": {
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "attendee_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "members": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "member_id": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "name": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 56.76
+                },
+                "President": {
+                  "type": "object",
+                  "properties": {
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "attendee_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "members": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "member_id": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "name": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 62.16
+                },
+                "Secretary": {
+                  "type": "object",
+                  "properties": {
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "attendee_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "members": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "member_id": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "name": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 67.57
+                },
+                "Treasurer": {
+                  "type": "object",
+                  "properties": {
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "attendee_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "members": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "member_id": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "name": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 56.76
+                },
+                "Vice President": {
+                  "type": "object",
+                  "properties": {
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "attendee_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "members": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "member_id": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "name": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 54.29
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "finance_rollup": {
+          "type": "object",
+          "properties": {
+            "category_count": {
+              "type": "integer",
+              "missingOrNullPercentage": 0.0
+            },
+            "allocated_total": {
+              "type": "number",
+              "missingOrNullPercentage": 0.0
+            },
+            "spent_total": {
+              "type": "number",
+              "missingOrNullPercentage": 0.0
+            },
+            "remaining_total": {
+              "type": "number",
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "schema_state": {
+          "type": "object",
+          "properties": {
+            "notes": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "location": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "budgets": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "attendance": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "external_rsvp_feed": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "_provenance": {
+          "type": "object",
+          "properties": {
+            "source_tables": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "source_keys": {
+              "type": "object",
+              "properties": {
+                "event_id": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        }
+      }
+    },
+    "club_member_accounts_v2": {
+      "field_count": 6,
+      "has_objects": true,
+      "has_array_of_objects": true,
+      "has_multi_array_paths": false,
+      "total_documents": 33,
+      "schema": {
+        "_id": {
+          "type": "string",
+          "missingOrNullPercentage": 0.0
+        },
+        "account": {
+          "type": "object",
+          "properties": {
+            "member_id": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "profile": {
+              "type": "object",
+              "properties": {
+                "first_name": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "last_name": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "display_name": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "email": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "phone": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "shirt_size": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "club_role": {
+              "type": "object",
+              "properties": {
+                "position": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "is_officer": {
+                  "type": "boolean",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "academic_profile": {
+              "type": "object",
+              "properties": {
+                "major_id": {
+                  "type": "string",
+                  "missingOrNullPercentage": 3.03
+                },
+                "presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "major": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "department": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "college": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 3.03
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "address_profile": {
+              "type": "object",
+              "properties": {
+                "zip": {
+                  "type": "integer",
+                  "missingOrNullPercentage": 0.0
+                },
+                "presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "zip_code": {
+                  "type": "object",
+                  "properties": {
+                    "city": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "county": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "short_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "zip_type": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "participation": {
+          "type": "object",
+          "properties": {
+            "attendance_presence_state": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "event_count": {
+              "type": "integer",
+              "missingOrNullPercentage": 0.0
+            },
+            "events": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "event_presence_state": {
+                    "type": "string",
+                    "missingOrNullPercentage": 0.0
+                  },
+                  "event_id": {
+                    "type": "string",
+                    "missingOrNullPercentage": 0.0
+                  },
+                  "event": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "type": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "status": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "date": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "location": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.68
+                          },
+                          "presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 0.0
+                  },
+                  "budget_by_category": {
+                    "type": "object",
+                    "properties": {
+                      "Advertisement": {
+                        "type": "object",
+                        "properties": {
+                          "budget_count": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "allocated_total": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status_by_state": {
+                            "type": "object",
+                            "properties": {
+                              "Closed": {
+                                "type": "object",
+                                "properties": {
+                                  "presence_state": {
+                                    "type": "string",
+                                    "missingOrNullPercentage": 0.0
+                                  },
+                                  "budget_count": {
+                                    "type": "integer",
+                                    "missingOrNullPercentage": 0.0
+                                  },
+                                  "remaining_total": {
+                                    "type": "number",
+                                    "missingOrNullPercentage": 0.0
+                                  }
+                                },
+                                "missingOrNullPercentage": 1.47
+                              },
+                              "Open": {
+                                "type": "object",
+                                "properties": {
+                                  "presence_state": {
+                                    "type": "string",
+                                    "missingOrNullPercentage": 0.0
+                                  },
+                                  "budget_count": {
+                                    "type": "integer",
+                                    "missingOrNullPercentage": 0.0
+                                  },
+                                  "remaining_total": {
+                                    "type": "number",
+                                    "missingOrNullPercentage": 0.0
+                                  }
+                                },
+                                "missingOrNullPercentage": 95.24
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 53.42
+                      },
+                      "Food": {
+                        "type": "object",
+                        "properties": {
+                          "budget_count": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "allocated_total": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status_by_state": {
+                            "type": "object",
+                            "properties": {
+                              "Closed": {
+                                "type": "object",
+                                "properties": {
+                                  "presence_state": {
+                                    "type": "string",
+                                    "missingOrNullPercentage": 0.0
+                                  },
+                                  "budget_count": {
+                                    "type": "integer",
+                                    "missingOrNullPercentage": 0.0
+                                  },
+                                  "remaining_total": {
+                                    "type": "number",
+                                    "missingOrNullPercentage": 0.0
+                                  }
+                                },
+                                "missingOrNullPercentage": 2.9
+                              },
+                              "Planning": {
+                                "type": "object",
+                                "properties": {
+                                  "presence_state": {
+                                    "type": "string",
+                                    "missingOrNullPercentage": 0.0
+                                  },
+                                  "budget_count": {
+                                    "type": "integer",
+                                    "missingOrNullPercentage": 0.0
+                                  },
+                                  "remaining_total": {
+                                    "type": "number",
+                                    "missingOrNullPercentage": 0.0
+                                  }
+                                },
+                                "missingOrNullPercentage": 96.88
+                              },
+                              "Open": {
+                                "type": "object",
+                                "properties": {
+                                  "presence_state": {
+                                    "type": "string",
+                                    "missingOrNullPercentage": 0.0
+                                  },
+                                  "budget_count": {
+                                    "type": "integer",
+                                    "missingOrNullPercentage": 0.0
+                                  },
+                                  "remaining_total": {
+                                    "type": "number",
+                                    "missingOrNullPercentage": 0.0
+                                  }
+                                },
+                                "missingOrNullPercentage": 95.24
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 52.74
+                      },
+                      "Parking": {
+                        "type": "object",
+                        "properties": {
+                          "budget_count": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "allocated_total": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status_by_state": {
+                            "type": "object",
+                            "properties": {
+                              "Closed": {
+                                "type": "object",
+                                "properties": {
+                                  "presence_state": {
+                                    "type": "string",
+                                    "missingOrNullPercentage": 0.0
+                                  },
+                                  "budget_count": {
+                                    "type": "integer",
+                                    "missingOrNullPercentage": 0.0
+                                  },
+                                  "remaining_total": {
+                                    "type": "number",
+                                    "missingOrNullPercentage": 0.0
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 60.27
+                      },
+                      "Speaker Gifts": {
+                        "type": "object",
+                        "properties": {
+                          "budget_count": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "allocated_total": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status_by_state": {
+                            "type": "object",
+                            "properties": {
+                              "Closed": {
+                                "type": "object",
+                                "properties": {
+                                  "presence_state": {
+                                    "type": "string",
+                                    "missingOrNullPercentage": 0.0
+                                  },
+                                  "budget_count": {
+                                    "type": "integer",
+                                    "missingOrNullPercentage": 0.0
+                                  },
+                                  "remaining_total": {
+                                    "type": "number",
+                                    "missingOrNullPercentage": 0.0
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 60.27
+                      },
+                      "Club T-Shirts": {
+                        "type": "object",
+                        "properties": {
+                          "budget_count": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "allocated_total": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status_by_state": {
+                            "type": "object",
+                            "properties": {
+                              "Closed": {
+                                "type": "object",
+                                "properties": {
+                                  "presence_state": {
+                                    "type": "string",
+                                    "missingOrNullPercentage": 0.0
+                                  },
+                                  "budget_count": {
+                                    "type": "integer",
+                                    "missingOrNullPercentage": 0.0
+                                  },
+                                  "remaining_total": {
+                                    "type": "number",
+                                    "missingOrNullPercentage": 0.0
+                                  }
+                                },
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 86.71
+                      }
+                    },
+                    "missingOrNullPercentage": 0.0
+                  }
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "finance": {
+          "type": "object",
+          "properties": {
+            "income_by_source": {
+              "type": "object",
+              "properties": {
+                "Dues": {
+                  "type": "object",
+                  "properties": {
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "income_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "amount_total": {
+                      "type": "number",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "payments": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "income_id": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "date_received": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "amount": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "notes": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": null,
+                                "missingOrNullPercentage": 100.0
+                              },
+                              "presence_state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 6.06
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "expense_by_category": {
+              "type": "object",
+              "properties": {
+                "Advertisement": {
+                  "type": "object",
+                  "properties": {
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "expense_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "cost_total": {
+                      "type": "number",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "expenses": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "expense_id": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "description": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "cost": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "approval_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 91.3
+                },
+                "Food": {
+                  "type": "object",
+                  "properties": {
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "expense_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "cost_total": {
+                      "type": "number",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "expenses": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "expense_id": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "description": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "cost": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "approval_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 86.96
+                },
+                "Speaker Gifts": {
+                  "type": "object",
+                  "properties": {
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "expense_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "cost_total": {
+                      "type": "number",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "expenses": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "expense_id": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "description": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "cost": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "approval_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 93.33
+                },
+                "Club T-Shirts": {
+                  "type": "object",
+                  "properties": {
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "expense_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "cost_total": {
+                      "type": "number",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "expenses": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "expense_id": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "description": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "cost": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "approval_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 91.67
+                },
+                "Parking": {
+                  "type": "object",
+                  "properties": {
+                    "presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "expense_count": {
+                      "type": "integer",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "cost_total": {
+                      "type": "number",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "expenses": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "expense_id": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "description": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "cost": {
+                            "type": "number",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "approval_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 91.67
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "summary": {
+              "type": "object",
+              "properties": {
+                "income_total": {
+                  "type": "number",
+                  "missingOrNullPercentage": 0.0
+                },
+                "expense_total": {
+                  "type": "number",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "schema_state": {
+          "type": "object",
+          "properties": {
+            "major": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "zip_code": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "income": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "expenses": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "advisor_account": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "_provenance": {
+          "type": "object",
+          "properties": {
+            "source_tables": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "source_keys": {
+              "type": "object",
+              "properties": {
+                "member_id": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        }
+      }
+    }
+  }
+}
