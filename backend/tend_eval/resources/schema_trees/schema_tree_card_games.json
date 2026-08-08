@@ -1,0 +1,3286 @@
+{
+  "database_name": "card_games",
+  "total_collections": 2,
+  "collections": {
+    "card_print_dossiers": {
+      "field_count": 10,
+      "has_objects": true,
+      "has_array_of_objects": true,
+      "has_multi_array_paths": true,
+      "total_documents": 56822,
+      "schema": {
+        "_id": {
+          "type": "string",
+          "missingOrNullPercentage": 0.0
+        },
+        "card_id": {
+          "type": "integer",
+          "missingOrNullPercentage": 0.0
+        },
+        "print_identity": {
+          "type": "object",
+          "properties": {
+            "uuid": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "name": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "ascii_name": {
+              "type": null,
+              "missingOrNullPercentage": 100.0
+            },
+            "set": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "name": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "release_date": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "type": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "number": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "artist": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "rarity": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "layout": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "side": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "missingOrNullPercentage": 96.0
+                },
+                "state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "gameplay": {
+          "type": "object",
+          "properties": {
+            "mana": {
+              "type": "object",
+              "properties": {
+                "cost": {
+                  "type": "string",
+                  "missingOrNullPercentage": 9.3
+                },
+                "converted": {
+                  "type": "number",
+                  "missingOrNullPercentage": 0.0
+                },
+                "colors": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "color_identity": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "type_line": {
+              "type": "object",
+              "properties": {
+                "oracle": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "original": {
+                  "type": "string",
+                  "missingOrNullPercentage": 16.4
+                },
+                "types": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "subtypes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "supertypes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "combat": {
+              "type": "object",
+              "properties": {
+                "power": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "missingOrNullPercentage": 50.3
+                    },
+                    "state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "toughness": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "missingOrNullPercentage": 50.3
+                    },
+                    "state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "loyalty": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "missingOrNullPercentage": 98.3
+                    },
+                    "state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "rules_text": {
+              "type": "object",
+              "properties": {
+                "oracle": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "missingOrNullPercentage": 1.4
+                    },
+                    "state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "original": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "missingOrNullPercentage": 17.5
+                    },
+                    "state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "keywords": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "print_features": {
+          "type": "object",
+          "properties": {
+            "availability": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "border_color": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "flags_by_name": {
+              "type": "object",
+              "properties": {
+                "has_foil": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "boolean",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "has_nonfoil": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "boolean",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "is_promo": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "boolean",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "is_reprint": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "boolean",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                },
+                "content_warning": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "boolean",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "legality": {
+          "type": "object",
+          "properties": {
+            "by_format": {
+              "type": "object",
+              "properties": {
+                "brawl": {
+                  "type": "object",
+                  "properties": {
+                    "latest_status": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "status_presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "legality_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "format": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status_presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 85.8
+                },
+                "commander": {
+                  "type": "object",
+                  "properties": {
+                    "latest_status": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "status_presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "legality_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "format": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status_presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.9
+                },
+                "duel": {
+                  "type": "object",
+                  "properties": {
+                    "latest_status": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "status_presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "legality_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "format": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status_presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.9
+                },
+                "future": {
+                  "type": "object",
+                  "properties": {
+                    "latest_status": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "status_presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "legality_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "format": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status_presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 85.8
+                },
+                "gladiator": {
+                  "type": "object",
+                  "properties": {
+                    "latest_status": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "status_presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "legality_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "format": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status_presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 69.3
+                },
+                "historic": {
+                  "type": "object",
+                  "properties": {
+                    "latest_status": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "status_presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "legality_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "format": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status_presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 69.3
+                },
+                "legacy": {
+                  "type": "object",
+                  "properties": {
+                    "latest_status": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "status_presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "legality_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "format": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status_presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.9
+                },
+                "modern": {
+                  "type": "object",
+                  "properties": {
+                    "latest_status": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "status_presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "legality_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "format": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status_presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 20.6
+                },
+                "penny": {
+                  "type": "object",
+                  "properties": {
+                    "latest_status": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "status_presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "legality_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "format": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status_presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 30.2
+                },
+                "pioneer": {
+                  "type": "object",
+                  "properties": {
+                    "latest_status": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "status_presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "legality_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "format": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status_presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 53.6
+                },
+                "standard": {
+                  "type": "object",
+                  "properties": {
+                    "latest_status": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "status_presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "legality_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "format": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status_presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 85.8
+                },
+                "vintage": {
+                  "type": "object",
+                  "properties": {
+                    "latest_status": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "status_presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "legality_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "format": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status_presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 0.9
+                },
+                "premodern": {
+                  "type": "object",
+                  "properties": {
+                    "latest_status": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "status_presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "legality_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "format": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status_presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 72.85
+                },
+                "pauper": {
+                  "type": "object",
+                  "properties": {
+                    "latest_status": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "status_presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "legality_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "format": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status_presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 60.93
+                },
+                "oldschool": {
+                  "type": "object",
+                  "properties": {
+                    "latest_status": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "status_presence_state": {
+                      "type": "string",
+                      "missingOrNullPercentage": 0.0
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "legality_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "format": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "status_presence_state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 95.28
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "format_count": {
+              "type": "integer",
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "localization": {
+          "type": "object",
+          "properties": {
+            "translations_by_language": {
+              "type": "object",
+              "properties": {
+                "Chinese Simplified": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "foreign_data_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "text": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "type": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "multiverse_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.56
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 46.15
+                },
+                "Chinese Traditional": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "foreign_data_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "text": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "type": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "multiverse_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 66.07
+                },
+                "French": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "foreign_data_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "text": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "type": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "multiverse_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 12.7
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 30.63
+                },
+                "German": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "foreign_data_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "text": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "type": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "multiverse_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 11.94
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 31.23
+                },
+                "Italian": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "foreign_data_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "text": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "type": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "multiverse_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 13.36
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 31.83
+                },
+                "Japanese": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "foreign_data_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "text": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "type": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "multiverse_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 16.41
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 28.03
+                },
+                "Korean": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "foreign_data_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "text": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "type": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "multiverse_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 4.71
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 70.27
+                },
+                "Portuguese (Brazil)": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "foreign_data_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "text": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "type": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "multiverse_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 13.19
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 36.24
+                },
+                "Russian": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "foreign_data_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "text": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "type": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "multiverse_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 53.95
+                },
+                "Spanish": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "foreign_data_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "text": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "type": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "state": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          }
+                        },
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "multiverse_id": {
+                        "type": "integer",
+                        "missingOrNullPercentage": 14.26
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 31.23
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "language_count": {
+              "type": "integer",
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "rulings": {
+          "type": "object",
+          "properties": {
+            "by_year": {
+              "type": "object",
+              "properties": {
+                "2019": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruling_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "date": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "text": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 96.0
+                },
+                "2011": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruling_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "date": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "text": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 97.69
+                },
+                "2008": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruling_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "date": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "text": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 96.08
+                },
+                "2005": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruling_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "date": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "text": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 98.89
+                },
+                "2020": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruling_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "date": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "text": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 93.24
+                },
+                "2014": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruling_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "date": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "text": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 97.37
+                },
+                "2016": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruling_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "date": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "text": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 95.35
+                },
+                "2004": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruling_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "date": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "text": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 95.19
+                },
+                "2015": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruling_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "date": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "text": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 97.53
+                },
+                "2018": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruling_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "date": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "text": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 94.95
+                },
+                "2013": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruling_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "date": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "text": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 94.21
+                },
+                "2009": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruling_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "date": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "text": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 96.05
+                },
+                "2007": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruling_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "date": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "text": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 98.12
+                },
+                "2017": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruling_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "date": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "text": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 94.63
+                },
+                "2012": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruling_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "date": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "text": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 99.02
+                },
+                "2021": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruling_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "date": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "text": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 98.91
+                },
+                "2010": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruling_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "date": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "text": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 97.92
+                },
+                "2006": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruling_id": {
+                            "type": "integer",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "date": {
+                            "type": "string",
+                            "missingOrNullPercentage": 0.0
+                          },
+                          "text": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              },
+                              "state": {
+                                "type": "string",
+                                "missingOrNullPercentage": 0.0
+                              }
+                            },
+                            "missingOrNullPercentage": 0.0
+                          }
+                        }
+                      },
+                      "missingOrNullPercentage": 0.0
+                    }
+                  },
+                  "missingOrNullPercentage": 99.06
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "ruling_count": {
+              "type": "integer",
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "views": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "view_id": {
+                "type": "string",
+                "missingOrNullPercentage": 0.0
+              },
+              "status_by_format": {
+                "type": "object",
+                "properties": {
+                  "brawl": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "status_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 85.8
+                  },
+                  "commander": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "status_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 0.9
+                  },
+                  "duel": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "status_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 0.9
+                  },
+                  "future": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "status_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 85.8
+                  },
+                  "gladiator": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "status_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 69.3
+                  },
+                  "historic": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "status_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 69.3
+                  },
+                  "legacy": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "status_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 0.9
+                  },
+                  "modern": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "status_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 20.6
+                  },
+                  "penny": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "status_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 30.2
+                  },
+                  "pioneer": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "status_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 53.6
+                  },
+                  "standard": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "status_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 85.8
+                  },
+                  "vintage": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "status_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 0.9
+                  },
+                  "premodern": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "status_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 72.85
+                  },
+                  "pauper": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "status_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 60.93
+                  },
+                  "oldschool": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "status_presence_state": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    },
+                    "missingOrNullPercentage": 95.28
+                  }
+                },
+                "missingOrNullPercentage": 50.0
+              },
+              "translations_by_language": {
+                "type": "object",
+                "properties": {
+                  "Chinese Simplified": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "foreign_data_id": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "name": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "text": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          },
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "type": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          },
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "multiverse_id": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.56
+                        }
+                      }
+                    },
+                    "missingOrNullPercentage": 46.15
+                  },
+                  "Chinese Traditional": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "foreign_data_id": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "name": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "text": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          },
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "type": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          },
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "multiverse_id": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        }
+                      }
+                    },
+                    "missingOrNullPercentage": 66.07
+                  },
+                  "French": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "foreign_data_id": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "name": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "text": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          },
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "type": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          },
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "multiverse_id": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 12.7
+                        }
+                      }
+                    },
+                    "missingOrNullPercentage": 30.63
+                  },
+                  "German": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "foreign_data_id": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "name": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "text": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          },
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "type": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          },
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "multiverse_id": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 11.94
+                        }
+                      }
+                    },
+                    "missingOrNullPercentage": 31.23
+                  },
+                  "Italian": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "foreign_data_id": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "name": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "text": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          },
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "type": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          },
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "multiverse_id": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 13.36
+                        }
+                      }
+                    },
+                    "missingOrNullPercentage": 31.83
+                  },
+                  "Japanese": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "foreign_data_id": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "name": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "text": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          },
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "type": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          },
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "multiverse_id": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 16.41
+                        }
+                      }
+                    },
+                    "missingOrNullPercentage": 28.03
+                  },
+                  "Korean": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "foreign_data_id": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "name": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "text": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          },
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "type": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          },
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "multiverse_id": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 4.71
+                        }
+                      }
+                    },
+                    "missingOrNullPercentage": 70.27
+                  },
+                  "Portuguese (Brazil)": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "foreign_data_id": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "name": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "text": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          },
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "type": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          },
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "multiverse_id": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 13.19
+                        }
+                      }
+                    },
+                    "missingOrNullPercentage": 36.24
+                  },
+                  "Russian": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "foreign_data_id": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "name": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "text": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          },
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "type": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          },
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "multiverse_id": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        }
+                      }
+                    },
+                    "missingOrNullPercentage": 53.95
+                  },
+                  "Spanish": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "foreign_data_id": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "name": {
+                          "type": "string",
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "text": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          },
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "type": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            },
+                            "state": {
+                              "type": "string",
+                              "missingOrNullPercentage": 0.0
+                            }
+                          },
+                          "missingOrNullPercentage": 0.0
+                        },
+                        "multiverse_id": {
+                          "type": "integer",
+                          "missingOrNullPercentage": 14.26
+                        }
+                      }
+                    },
+                    "missingOrNullPercentage": 31.23
+                  }
+                },
+                "missingOrNullPercentage": 49.97
+              }
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "schema_state": {
+          "type": "object",
+          "properties": {
+            "legalities": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "foreign_data": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "rulings": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "power": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "digital_faces": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        }
+      }
+    },
+    "set_release_ecosystems": {
+      "field_count": 6,
+      "has_objects": true,
+      "has_array_of_objects": true,
+      "has_multi_array_paths": false,
+      "total_documents": 551,
+      "schema": {
+        "_id": {
+          "type": "string",
+          "missingOrNullPercentage": 0.0
+        },
+        "set_code": {
+          "type": "string",
+          "missingOrNullPercentage": 0.0
+        },
+        "release": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "type": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "block": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "missingOrNullPercentage": 50.64
+                },
+                "state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "date": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "sizes": {
+              "type": "object",
+              "properties": {
+                "base": {
+                  "type": "integer",
+                  "missingOrNullPercentage": 0.0
+                },
+                "total": {
+                  "type": "integer",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            },
+            "foil_policy": {
+              "type": "object",
+              "properties": {
+                "foil_only": {
+                  "type": "boolean",
+                  "missingOrNullPercentage": 0.0
+                },
+                "foreign_only": {
+                  "type": "boolean",
+                  "missingOrNullPercentage": 0.0
+                },
+                "online_only": {
+                  "type": "boolean",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "cards_by_rarity": {
+          "type": "object",
+          "properties": {
+            "common": {
+              "type": "object",
+              "properties": {
+                "cards": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "uuid": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "number": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "artist": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "layout": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 49.36
+            },
+            "mythic": {
+              "type": "object",
+              "properties": {
+                "cards": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "uuid": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "number": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "artist": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "layout": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 57.45
+            },
+            "rare": {
+              "type": "object",
+              "properties": {
+                "cards": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "uuid": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "number": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "artist": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.1
+                      },
+                      "layout": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 14.78
+            },
+            "uncommon": {
+              "type": "object",
+              "properties": {
+                "cards": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "uuid": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "name": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "number": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "artist": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      },
+                      "layout": {
+                        "type": "string",
+                        "missingOrNullPercentage": 0.0
+                      }
+                    }
+                  },
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 48.36
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "translations_by_language": {
+          "type": "object",
+          "properties": {
+            "Chinese Simplified": {
+              "type": "object",
+              "properties": {
+                "translation": {
+                  "type": "string",
+                  "missingOrNullPercentage": 21.49
+                },
+                "translation_presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 77.92
+            },
+            "Chinese Traditional": {
+              "type": "object",
+              "properties": {
+                "translation": {
+                  "type": "string",
+                  "missingOrNullPercentage": 21.49
+                },
+                "translation_presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 77.92
+            },
+            "French": {
+              "type": "object",
+              "properties": {
+                "translation": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                },
+                "translation_presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 77.92
+            },
+            "German": {
+              "type": "object",
+              "properties": {
+                "translation": {
+                  "type": "string",
+                  "missingOrNullPercentage": 19.01
+                },
+                "translation_presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 77.92
+            },
+            "Italian": {
+              "type": "object",
+              "properties": {
+                "translation": {
+                  "type": "string",
+                  "missingOrNullPercentage": 21.49
+                },
+                "translation_presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 77.92
+            },
+            "Japanese": {
+              "type": "object",
+              "properties": {
+                "translation": {
+                  "type": "string",
+                  "missingOrNullPercentage": 23.14
+                },
+                "translation_presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 77.92
+            },
+            "Korean": {
+              "type": "object",
+              "properties": {
+                "translation": {
+                  "type": "string",
+                  "missingOrNullPercentage": 21.49
+                },
+                "translation_presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 77.92
+            },
+            "Portuguese (Brazil)": {
+              "type": "object",
+              "properties": {
+                "translation": {
+                  "type": "string",
+                  "missingOrNullPercentage": 21.49
+                },
+                "translation_presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 77.92
+            },
+            "Russian": {
+              "type": "object",
+              "properties": {
+                "translation": {
+                  "type": "string",
+                  "missingOrNullPercentage": 21.49
+                },
+                "translation_presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 77.92
+            },
+            "Spanish": {
+              "type": "object",
+              "properties": {
+                "translation": {
+                  "type": "string",
+                  "missingOrNullPercentage": 19.83
+                },
+                "translation_presence_state": {
+                  "type": "string",
+                  "missingOrNullPercentage": 0.0
+                }
+              },
+              "missingOrNullPercentage": 77.92
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        },
+        "schema_state": {
+          "type": "object",
+          "properties": {
+            "cards": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "translations": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "booster_schema": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            },
+            "parent_code": {
+              "type": "string",
+              "missingOrNullPercentage": 0.0
+            }
+          },
+          "missingOrNullPercentage": 0.0
+        }
+      }
+    }
+  }
+}
